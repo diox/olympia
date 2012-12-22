@@ -19,7 +19,7 @@ from addons.models import (Addon, AddonCategory, AddonDeviceType, AddonPremium,
                            BlacklistedSlug, Category, Preview, version_changed)
 from addons.signals import version_changed as version_changed_signal
 from amo.helpers import absolutify
-from amo.tests import app_factory, version_factory
+from amo.tests import AppFactory, version_factory
 from amo.urlresolvers import reverse
 from constants.applications import DEVICE_TYPES
 from editors.models import RereviewQueue
@@ -264,10 +264,10 @@ class TestWebapp(amo.tests.TestCase):
             sorted(w2_regions))
 
     def test_package_helpers(self):
-        app1 = app_factory()
-        eq_(app1.is_packaged, False)
-        app2 = app_factory(is_packaged=True)
-        eq_(app2.is_packaged, True)
+        app = AppFactory()
+        eq_(app.is_packaged, False)
+        app.is_packaged = True
+        eq_(app.is_packaged, True)
 
     def test_package_no_version(self):
         webapp = Webapp.objects.create(manifest_url='http://foo.com')
@@ -356,7 +356,7 @@ class TestWebappManager(amo.tests.TestCase):
 
     def test_listed(self):
         # Public status, non-null current version, non-user-disabled.
-        w = app_factory(status=amo.STATUS_PUBLIC)
+        w = AppFactory.create(status=amo.STATUS_PUBLIC)
         self.listed_eq([w])
 
     def test_unlisted(self):
@@ -1020,35 +1020,35 @@ class TestUpdateStatus(amo.tests.TestCase):
         eq_(app.status, amo.STATUS_NULL)
 
     def test_only_version_deleted(self):
-        app = amo.tests.app_factory(status=amo.STATUS_REJECTED)
+        app = AppFactory.create(status=amo.STATUS_REJECTED)
         app.current_version.delete()
         app.update_status()
         eq_(app.status, amo.STATUS_NULL)
 
     def test_other_version_deleted(self):
-        app = amo.tests.app_factory(status=amo.STATUS_REJECTED)
+        app = AppFactory.create(status=amo.STATUS_REJECTED)
         amo.tests.version_factory(addon=app)
         app.current_version.delete()
         app.update_status()
         eq_(app.status, amo.STATUS_REJECTED)
 
     def test_one_version_pending(self):
-        app = amo.tests.app_factory(status=amo.STATUS_REJECTED,
-                                    file_kw=dict(status=amo.STATUS_DISABLED))
+        app = AppFactory.create(status=amo.STATUS_REJECTED,
+                               file_kw=dict(status=amo.STATUS_DISABLED))
         amo.tests.version_factory(addon=app,
                                   file_kw=dict(status=amo.STATUS_PENDING))
         app.update_status()
         eq_(app.status, amo.STATUS_PENDING)
 
     def test_one_version_public(self):
-        app = amo.tests.app_factory(status=amo.STATUS_PUBLIC)
+        app = AppFactory.create(status=amo.STATUS_PUBLIC)
         amo.tests.version_factory(addon=app,
                                   file_kw=dict(status=amo.STATUS_DISABLED))
         app.update_status()
         eq_(app.status, amo.STATUS_PUBLIC)
 
     def test_blocklisted(self):
-        app = amo.tests.app_factory(status=amo.STATUS_BLOCKED)
+        app = AppFactory.create(status=amo.STATUS_BLOCKED)
         app.current_version.delete()
         app.update_status()
         eq_(app.status, amo.STATUS_BLOCKED)

@@ -1,3 +1,4 @@
+import inspect
 import math
 import os
 import random
@@ -503,12 +504,7 @@ def assert_no_validation_errors(validation):
                              error.rstrip().split("\n")[-1])
 
 
-def app_factory(**kw):
-    kw.update(type=amo.ADDON_WEBAPP)
-    return amo.tests.addon_factory(**kw)
-
-
-def _get_created(created):
+def _get_created(created=None):
     """
     Returns a datetime.
 
@@ -526,6 +522,95 @@ def _get_created(created):
                         random.randint(0, 23),  # Hour
                         random.randint(0, 59),  # Minute
                         random.randint(0, 59))  # Seconds
+
+
+def junkstr(limit=10):
+    """Return a string of `limit` length containing characters from A...z."""
+    return ''.join(random.sample(map(chr, range(65, 123)), limit))
+
+
+class LazyAttribute(object):
+
+    def __init__(self, f, *args, **kw):
+        self.f = f
+        self.args = args
+        self.kw = kw
+
+    def execute(self):
+        return self.f(*self.args, **self.kw)
+
+
+class FactoryBro(object):
+
+    @staticmethod
+    def __new__(cls, **kw):
+        return cls.build(**kw)
+
+    @classmethod
+    def construct(cls, **kw):
+        data = {}
+        for k, v in inspect.getmembers(cls):
+            if (k == 'Meta' or (k[:2] == '__' and k[-2:] == '__') or
+                inspect.ismethod(v)):
+                continue
+            data[k] = v.execute() if isinstance(v, LazyAttribute) else v
+        data.update(kw)
+        return data
+
+    @classmethod
+    def build(cls, **kw):
+        """Returns an object instance without saving to the DB."""
+        return cls.Meta.model(**cls.construct(**kw))
+
+    @classmethod
+    def create(cls, **kw):
+        """Returns an object instance after saving to the DB."""
+        return cls.Meta.model.objects.create(**cls.construct(**kw))
+
+
+class AddonFactory(FactoryBro):
+    type = amo.ADDON_EXTENSION
+    status = amo.STATUS_PUBLIC
+    name = LazyAttribute(junkstr)
+    slug = LazyAttribute(lambda: junkstr().replace(' ', '-').lower())
+    average_daily_users = LazyAttribute(lambda: random.randint(200, 2000))
+    bayesian_rating = LazyAttribute(lambda: random.uniform(1, 5))
+    weekly_downloads = LazyAttribute(lambda: random.randint(200, 2000))
+    created = last_updated = LazyAttribute(_get_created)
+
+    class Meta:
+        model = Addon
+
+    @classmethod
+    def create(cls, **kw):
+        file_kw = kw.pop('file_kw', {})
+        version_kw = kw.pop('version_kw', {})
+        data = cls.construct(**kw)
+        a = cls.Meta.model.objects.create(**data)
+
+        # TODO: See if we somehow avoid this bullish, and just
+        # do it on a case-by-case basis. Maybe a `build_version` method?
+        version_factory(file_kw, addon=a, **version_kw)
+        a.update_version()
+        if a.status != data['status']:
+            a.update(status=data['status'])
+
+        return a
+
+
+class AppFactory(AddonFactory):
+    type = amo.ADDON_WEBAPP
+    slug = LazyAttribute(lambda: junkstr().replace(' ', '-').lower())
+    app_slug = slug
+
+
+class PersonaFactory(AddonFactory):
+    type = amo.ADDON_PERSONA
+
+
+def app_factory(**kw):
+    kw.update(type=amo.ADDON_WEBAPP)
+    return amo.tests.addon_factory(**kw)
 
 
 def addon_factory(version_kw={}, file_kw={}, **kw):

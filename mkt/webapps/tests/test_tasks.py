@@ -61,7 +61,7 @@ class TestUpdateManifest(amo.tests.TestCase):
     def setUp(self):
         UserProfile.objects.get_or_create(id=settings.TASK_USER_ID)
 
-        self.addon = amo.tests.app_factory()
+        self.addon = AppFactory.create()
         self.version = self.addon.versions.latest()
         self.file = self.version.files.latest()
         self.file.update(hash=ohash)
