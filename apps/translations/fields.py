@@ -5,6 +5,7 @@ from django.db.models.fields import related
 from django.utils import translation as translation_utils
 from django.utils.translation.trans_real import to_language
 
+
 from .hold import add_translation, make_key, save_translations
 from .models import Translation, PurifiedTranslation, LinkifiedTranslation
 from .widgets import TransInput, TransTextarea

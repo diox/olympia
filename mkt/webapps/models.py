@@ -1261,8 +1261,9 @@ class WebappIndexer(MappingType, Indexable):
                 'has_info_request': None,
             }
         d['manifest_url'] = obj.get_manifest_url()
-        d['name'] = list(set(string for _, string
-                             in translations[obj.name_id]))
+        #d['name'] = list(set(string for _, string
+        #                     in translations[obj.name_id]))
+        d['name'] = getattr(obj, 'name_translations', '') or ''
         d['name_sort'] = unicode(obj.name).lower()
         d['owners'] = [au.user.id for au in
                        obj.addonuser_set.filter(role=amo.AUTHOR_ROLE_OWNER)]
@@ -1334,9 +1335,9 @@ class WebappIndexer(MappingType, Indexable):
                 analyzer in amo.SEARCH_ANALYZER_PLUGINS):
                 continue
 
-            d['name_' + analyzer] = list(
-                set(string for locale, string in translations[obj.name_id]
-                    if locale.lower() in languages))
+            # d['name_' + analyzer] = list(
+            #     set(string for locale, string in translations[obj.name_id]
+            #         if locale.lower() in languages))
             d['description_' + analyzer] = list(
                 set(string for locale, string
                     in translations[obj.description_id]
@@ -1360,8 +1361,8 @@ Webapp._meta.translated_fields = Addon._meta.translated_fields
           dispatch_uid='webapp.search.index')
 def update_search_index(sender, instance, **kw):
     from . import tasks
-    if not kw.get('raw'):
-        tasks.index_webapps.delay([instance.id])
+    # if not kw.get('raw'):
+    #     tasks.index_webapps.delay([instance.id])
 
 
 models.signals.pre_save.connect(save_signal, sender=Webapp,

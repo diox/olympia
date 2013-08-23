@@ -44,6 +44,7 @@ from stats.models import AddonShareCountTotal
 from tags.models import Tag
 from translations.fields import (LinkifiedField, PurifiedField, save_signal,
                                  TranslatedField, Translation)
+from translations.fields_new import NewTranslatedField
 from translations.query import order_by_translation
 from users.models import UserForeignKey, UserProfile
 from versions.compare import version_int
@@ -2002,7 +2003,7 @@ class BlacklistedGuid(amo.models.ModelBase):
 
 
 class Category(amo.models.OnChangeMixin, amo.models.ModelBase):
-    name = TranslatedField()
+    name = NewTranslatedField()
     slug = models.SlugField(max_length=50, help_text='Used in Category URLs.')
     type = models.PositiveIntegerField(db_column='addontype_id',
                                        choices=do_dictsort(amo.ADDON_TYPE))
