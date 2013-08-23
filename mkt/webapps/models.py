@@ -1261,6 +1261,7 @@ class WebappIndexer(MappingType, Indexable):
                 'has_info_request': None,
             }
         d['manifest_url'] = obj.get_manifest_url()
+        # TODO: Use obj.name.__dict__.values().
         d['name'] = list(set(string for _, string
                              in translations[obj.name_id]))
         d['name_sort'] = unicode(obj.name).lower()
@@ -1334,6 +1335,7 @@ class WebappIndexer(MappingType, Indexable):
                 analyzer in amo.SEARCH_ANALYZER_PLUGINS):
                 continue
 
+            # TODO: Use obj.name.__dict__.values().
             d['name_' + analyzer] = list(
                 set(string for locale, string in translations[obj.name_id]
                     if locale.lower() in languages))

@@ -44,6 +44,7 @@ from stats.models import AddonShareCountTotal
 from tags.models import Tag
 from translations.fields import (LinkifiedField, PurifiedField, save_signal,
                                  TranslatedField, Translation)
+from translations.fields_new import register_trans
 from translations.query import order_by_translation
 from users.models import UserForeignKey, UserProfile
 from versions.compare import version_int
@@ -2002,7 +2003,7 @@ class BlacklistedGuid(amo.models.ModelBase):
 
 
 class Category(amo.models.OnChangeMixin, amo.models.ModelBase):
-    name = TranslatedField()
+    name = models.TextField(default='', blank=True)
     slug = models.SlugField(max_length=50, help_text='Used in Category URLs.')
     type = models.PositiveIntegerField(db_column='addontype_id',
                                        choices=do_dictsort(amo.ADDON_TYPE))
@@ -2056,6 +2057,9 @@ class Category(amo.models.OnChangeMixin, amo.models.ModelBase):
     def clean(self):
         if self.slug.isdigit():
             raise ValidationError('Slugs cannot be all numbers.')
+
+
+register_trans(Category, ('name',))
 
 
 @Category.on_change

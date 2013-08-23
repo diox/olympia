@@ -7,10 +7,12 @@ import commonware.log
 import waffle
 from celery_tasktree import TaskTree
 import raven.base
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import (api_view, permission_classes,
+                                       renderer_classes)
 from rest_framework import generics
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import AllowAny
+from rest_framework.renderers import UnicodeJSONRenderer
 from rest_framework.response import Response
 from rest_framework.serializers import (BooleanField, CharField,
                                         ChoiceField,
@@ -31,6 +33,8 @@ from addons.forms import CategoryFormSet
 from addons.models import Addon, AddonUser, Category, Webapp
 from amo.decorators import write
 from amo.utils import no_translation
+from apps.translations.fields_new import (get_all_translation_keys,
+                                          get_all_translation_strings)
 from constants.applications import DEVICE_TYPES
 from constants.payments import PAYMENT_METHOD_CHOICES, PROVIDER_CHOICES
 from files.models import Platform
@@ -440,6 +444,22 @@ def error_reporter(request):
     client = raven.base.Client(settings.SENTRY_DSN)
     client.capture('raven.events.Exception', data=request.DATA)
     return Response(status=204)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@renderer_classes([UnicodeJSONRenderer])
+def l10n_keys(request):
+    request._request.CORS = ['GET', 'POST']
+    return Response(get_all_translation_keys())
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@renderer_classes([UnicodeJSONRenderer])
+def l10n_strings(request):
+    request._request.CORS = ['GET', 'POST']
+    return Response(get_all_translation_strings())
 
 
 class RefreshManifestViewSet(GenericViewSet, CORSMixin):

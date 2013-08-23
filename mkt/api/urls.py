@@ -8,9 +8,10 @@ from tastypie_services.services import (ErrorResource, SettingsResource)
 from mkt.submit.api import PreviewResource, StatusResource, ValidationResource
 from mkt.api.base import AppRouter, handle_500, SlugRouter
 from mkt.api.resources import (AppResource, CarrierResource, CategoryViewSet,
-                               ConfigResource, error_reporter,
-                               PriceTierViewSet, PriceCurrencyViewSet,
-                               RefreshManifestViewSet, RegionResource)
+                               ConfigResource, error_reporter, l10n_keys,
+                               l10n_strings, PriceTierViewSet,
+                               PriceCurrencyViewSet, RefreshManifestViewSet,
+                               RegionResource)
 from mkt.collections.views import CollectionImageViewSet, CollectionViewSet
 from mkt.features.views import AppFeaturesList
 from mkt.ratings.resources import RatingResource
@@ -67,5 +68,7 @@ urlpatterns = patterns('',
     url(r'^rocketfuel/collections/', include(subcollections.urls)),
     url(r'^apps/', include('mkt.versions.urls')),
     url(r'^apps/features/', AppFeaturesList.as_view(),
-        name='api-features-feature-list')
+        name='api-features-feature-list'),
+    url(r'^l10n/keys', l10n_keys, name='l10n-keys'),
+    url(r'^l10n/strings', l10n_strings, name='l10n-strings'),
 )
