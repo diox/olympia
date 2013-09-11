@@ -14,6 +14,7 @@ from datetime import date
 from django import forms
 from django.conf import settings
 from django.core.files.storage import default_storage as storage
+from django.db import IntegrityError
 from django.utils import translation
 from django.utils.http import urlencode
 
@@ -480,7 +481,11 @@ def region_exclude(ids, regions, **kw):
         log.info('[Webapp:%s] Excluding region(s): %s.' %
                  (id_, region_names))
         for region in regions:
-            AddonExcludedRegion.objects.create(addon_id=id_, region=region.id)
+            try:
+                AddonExcludedRegion.objects.create(addon_id=id_, region=region.id)
+            except IntegrityError:
+                # Already excluded? Swag!
+                pass
 
 
 @task
