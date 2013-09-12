@@ -118,6 +118,14 @@ class TestSearchFilters(BaseOAuth):
         qs = self._filter(self.req, {'manifest_url': url})
         ok_({'term': {'manifest_url': url}} in qs['filter']['and'])
 
+    def test_lang(self):
+        qs = self._filter(self.req, {'lang': 'fr'})
+        ok_({'in': {'supported_locales': ['fr']}} in qs['filter']['and'])
+
+        qs = self._filter(self.req, {'lang': 'ar,en-US'})
+        ok_({'in': {'supported_locales': ['ar', 'en-US']}}
+            in qs['filter']['and'])
+
     def test_region_exclusions(self):
         qs = self._filter(self.req, {'q': 'search terms'}, region=regions.CO)
         ok_({'not': {'filter': {'term': {'region_exclusions': 9}}}}

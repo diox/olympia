@@ -182,6 +182,16 @@ class TestApi(BaseOAuth, ESTestCase):
         objs = res.json['objects']
         eq_(len(objs), 0)
 
+    def test_lang_filtering(self):
+        self.webapp.addonexcludedregion.create(region=mkt.regions.BR.id)
+        self.webapp.save()
+        self.refresh('webapp')
+
+        res = self.client.get(self.url + ({'region': 'br'},))
+        eq_(res.status_code, 200)
+        objs = res.json['objects']
+        eq_(len(objs), 0)
+
     def test_q(self):
         res = self.client.get(self.url + ({'q': 'something'},))
         eq_(res.status_code, 200)

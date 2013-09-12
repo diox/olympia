@@ -95,6 +95,7 @@ class ApiSearchForm(forms.Form):
     app_type = forms.ChoiceField(required=False, label=_lazy(u'App type'),
                                  choices=APP_TYPE_CHOICES)
     manifest_url = forms.CharField(required=False, label=_lazy('Manifest URL'))
+    lang = forms.CharField(required=False, label=_lazy('Language'))
 
     sort = forms.MultipleChoiceField(required=False, choices=LISTING_SORT_CHOICES)
     # TODO: Drop this back to a reasonable value when we do pagination.
