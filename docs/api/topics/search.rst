@@ -36,8 +36,8 @@ Search
     :param optional type: Filters by type of add-on. One of 'app' or
         'theme'.
     :type type: string
-    :param optional app_type: Filters by type of web app. One of 'hosted' or
-        'packaged'.
+    :param optional app_type: Filters by type of web app. One of 'hosted',
+        'packaged', or 'privileged'.
     :type app_type: string
     :param optional manifest_url: Filters by manifest URL. Requires an
         exact match and should only return a single result if a match is

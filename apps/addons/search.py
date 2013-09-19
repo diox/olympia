@@ -93,8 +93,7 @@ def extract(addon):
             else:
                 d['popularity_%s' % region] = len(installed_ids)
             d['_boost'] += cnt * 10
-        d['app_type'] = (amo.ADDON_WEBAPP_PACKAGED if addon.is_packaged else
-                         amo.ADDON_WEBAPP_HOSTED)
+        d['app_type'] = addon.app_type_id
 
     else:
         # Boost by the number of users on a logarithmic scale. The maximum

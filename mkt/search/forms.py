@@ -31,6 +31,7 @@ APP_TYPE_CHOICES = [
     ('', _lazy(u'Any App Type')),
     ('hosted', _lazy(u'Hosted')),
     ('packaged', _lazy(u'Packaged')),
+    ('privileged', _lazy(u'Privileged packaged app')),
 ]
 
 PREMIUM_CHOICES = [
