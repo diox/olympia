@@ -35,7 +35,7 @@ from files.utils import SafeUnzip
 
 from mkt.constants import APP_PREVIEW_SIZES
 from mkt.constants.regions import REGIONS_CHOICES_SLUG
-from mkt.webapps.models import AddonExcludedRegion, Webapp
+from mkt.webapps.models import Georestrictions, Webapp
 
 
 log = logging.getLogger('z.mkt.developers.task')
@@ -471,7 +471,7 @@ def region_email(ids, regions, **kw):
 @task
 @write
 def region_exclude(ids, regions, **kw):
-    region_names = ', '.join(sorted([unicode(r.name) for r in regions]))
+    region_names = ', '.join(sorted(unicode(r.name) for r in regions))
 
     log.info('[%s@%s] Excluding new region(s): %s.' %
              (len(ids), region_exclude.rate_limit, region_names))
@@ -481,8 +481,10 @@ def region_exclude(ids, regions, **kw):
                  (id_, region_names))
         for region in regions:
             # Already excluded? Swag!
-            AddonExcludedRegion.objects.get_or_create(addon_id=id_,
-                                                      region=region.id)
+            Georestrictions.objects.get_or_create({
+                'addon_id': id_,
+                'region_%s': region.slug
+            })
 
 
 @task

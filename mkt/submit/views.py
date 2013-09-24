@@ -22,7 +22,6 @@ from mkt.developers.decorators import dev_required
 from mkt.developers.forms import AppFormMedia, CategoryForm, PreviewFormSet
 from mkt.submit.forms import AppDetailsBasicForm
 from mkt.submit.models import AppSubmissionChecklist
-from mkt.webapps.models import AddonExcludedRegion
 
 from . import forms
 from .decorators import read_dev_agreement_required, submit_step
@@ -201,8 +200,7 @@ def details(request, addon_id, addon):
             # Mark the app as excluded in regions that don't support payments.
             for region in mkt.regions.ALL_REGIONS:
                 if not region.has_payments:
-                    AddonExcludedRegion.objects.get_or_create(
-                        addon=addon, region=region.id)
+                    addon.georestrictions.exclude_region(region.slug)
         record_action('app-submitted', request, {'app-id': addon.pk})
 
         return redirect('submit.app.done', addon.app_slug)

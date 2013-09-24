@@ -224,7 +224,7 @@ class TestMonolithStats(amo.tests.TestCase):
         # Add a region exclusion.
         regions = dict(REGIONS_CHOICES_SLUG)
         excluded_region = regions['br']
-        app.addonexcludedregion.create(region=excluded_region.id)
+        app.georestrictions.exclude_region(excluded_region.slug)
 
         jobs = tasks._get_monolith_jobs(today)
 
@@ -269,7 +269,7 @@ class TestMonolithStats(amo.tests.TestCase):
         # Add a region exclusion.
         regions = dict(REGIONS_CHOICES_SLUG)
         excluded_region = regions['br']
-        app.addonexcludedregion.create(region=excluded_region.id)
+        app.georestrictions.exclude_region(excluded_region.slug)
 
         jobs = tasks._get_monolith_jobs(today)
 

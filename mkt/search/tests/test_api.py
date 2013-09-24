@@ -162,7 +162,7 @@ class TestApi(BaseOAuth, ESTestCase):
         upsell.delete()
 
     def test_dehydrate_regions(self):
-        self.webapp.addonexcludedregion.create(region=mkt.regions.BR.id)
+        self.webapp.georestrictions.exclude_region(mkt.regions.BR.slug)
         self.webapp.save()
         self.refresh('webapp')
 
@@ -174,7 +174,7 @@ class TestApi(BaseOAuth, ESTestCase):
         eq_(len(regions), len(mkt.regions.ALL_REGION_IDS) - 1)
 
     def test_region_filtering(self):
-        self.webapp.addonexcludedregion.create(region=mkt.regions.BR.id)
+        self.webapp.georestrictions.exclude_region(mkt.regions.BR.slug)
         self.webapp.save()
         self.refresh('webapp')
 

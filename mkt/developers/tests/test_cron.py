@@ -5,7 +5,6 @@ import amo.tests
 
 import mkt
 from mkt.developers.cron import exclude_new_region, send_new_region_emails
-from mkt.webapps.models import AddonExcludedRegion
 
 
 class TestSendNewRegionEmails(amo.tests.WebappTestCase):
@@ -18,15 +17,13 @@ class TestSendNewRegionEmails(amo.tests.WebappTestCase):
 
     @mock.patch('mkt.developers.cron._region_email')
     def test_not_called_with_exclusions(self, _region_email_mock):
-        AddonExcludedRegion.objects.create(addon=self.app,
-            region=mkt.regions.UK.id)
+        self.app.georestrictions.exclude_region(mkt.regions.UK.slug)
         send_new_region_emails([mkt.regions.UK])
         eq_(list(_region_email_mock.call_args_list[0][0][0]), [])
 
     @mock.patch('mkt.developers.cron._region_email')
     def test_not_called_with_future_exclusions(self, _region_email_mock):
-        AddonExcludedRegion.objects.create(addon=self.app,
-            region=mkt.regions.WORLDWIDE.id)
+        self.app.georestrictions.exclude_region(mkt.regions.WORLDWIDE.slug)
         send_new_region_emails([mkt.regions.UK])
         eq_(list(_region_email_mock.call_args_list[0][0][0]), [])
 
@@ -41,14 +38,12 @@ class TestExcludeNewRegion(amo.tests.WebappTestCase):
 
     @mock.patch('mkt.developers.cron._region_exclude')
     def test_not_called_with_ordinary_exclusions(self, _region_exclude_mock):
-        AddonExcludedRegion.objects.create(addon=self.app,
-            region=mkt.regions.UK.id)
+        self.app.georestrictions.exclude_region(mkt.regions.UK.slug)
         exclude_new_region([mkt.regions.UK])
         eq_(list(_region_exclude_mock.call_args_list[0][0][0]), [])
 
     @mock.patch('mkt.developers.cron._region_exclude')
     def test_called_with_future_exclusions(self, _region_exclude_mock):
-        AddonExcludedRegion.objects.create(addon=self.app,
-            region=mkt.regions.WORLDWIDE.id)
+        self.app.georestrictions.exclude_region(mkt.regions.WORLDWIDE.slug)
         exclude_new_region([mkt.regions.UK])
         eq_(list(_region_exclude_mock.call_args_list[0][0][0]), [self.app.id])

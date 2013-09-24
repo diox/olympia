@@ -18,7 +18,7 @@ from users.models import UserProfile
 
 import mkt
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import AddonExcludedRegion, Webapp
+from mkt.webapps.models import Webapp
 from mkt.webapps.tasks import unindex_webapps
 from mkt.zadmin.models import (FeaturedApp, FeaturedAppCarrier,
                                FeaturedAppRegion)
@@ -237,15 +237,14 @@ class TestFeaturedApps(amo.tests.TestCase):
             'region', flat=True)), [2, 4])
 
     def test_no_set_excluded_region(self):
-        AddonExcludedRegion.objects.create(addon=self.a1, region=2)
+        self.a1.exclude_region('us')
         f = FeaturedApp.objects.create(app=self.a1, category=None)
         FeaturedAppRegion.objects.create(featured_app=f, region=1)
         r = self.client.post(reverse('zadmin.set_attrs_ajax'),
                              data={'app': f.pk, 'region[]': (3, 2)})
         eq_(r.status_code, 200)
         eq_(list(FeaturedApp.objects.get(pk=f.pk).regions.values_list(
-            'region', flat=True)),
-            [3])
+            'region', flat=True)), [3])
 
     def test_set_carrier(self):
         f = FeaturedApp.objects.create(app=self.a1, category=None)

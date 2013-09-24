@@ -77,8 +77,7 @@ def featured_apps_ajax(request):
 
     for app in apps:
         regions = app.regions.values_list('region', flat=True)
-        excluded_regions = app.app.addonexcludedregion.values_list('region',
-                                                                   flat=True)
+        excluded_regions = app.app.get_excluded_region_ids()
         carriers = app.carriers.values_list('carrier', flat=True)
         apps_regions_carriers.append((app, regions, excluded_regions,
                                       carriers))
@@ -106,11 +105,10 @@ def set_attrs_ajax(request):
         fa.regions.exclude(region__in=regions).delete()
         to_create = regions - set(fa.regions.filter(region__in=regions)
                                   .values_list('region', flat=True))
-        excluded_regions = [e.region for e in fa.app.addonexcludedregion.all()]
+        excluded_regions = fa.app.get_excluded_region_ids()
         for i in to_create:
-            if i in excluded_regions:
-                continue
-            FeaturedAppRegion.objects.create(featured_app=fa, region=i)
+            if i not in excluded_regions:
+                FeaturedAppRegion.objects.create(featured_app=fa, region=i)
 
         fa.carriers.exclude(carrier__in=carriers).delete()
         to_create = carriers - set(fa.carriers.filter(carrier__in=carriers)

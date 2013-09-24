@@ -35,7 +35,7 @@ import mkt
 from mkt.constants import regions
 from mkt.constants.ratingsbodies import RATINGS_BODIES
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import AddonExcludedRegion as AER, ContentRating
+from mkt.webapps.models import ContentRating, Georestrictions
 
 
 response_mock = mock.Mock()
@@ -1048,14 +1048,14 @@ class TestEditDetails(TestEdit):
         self.assertFormError(r, 'form', 'homepage', 'Enter a valid URL.')
 
     def test_games_already_excluded_in_brazil(self):
-        AER.objects.create(addon=self.webapp, region=mkt.regions.BR.id)
+        Georestrictions.objects.get_or_create(addon=self.webapp,
+                                              region_br=False)
         games = Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')
 
         r = self.client.post(
             self.edit_url, self.get_dict(categories=[games.id]))
         self.assertNoFormErrors(r)
-        eq_(list(AER.objects.filter(addon=self.webapp)
-                            .values_list('region', flat=True)),
+        eq_(self.webapp.reload().get_excluded_region_ids(),
             [mkt.regions.BR.id])
 
 

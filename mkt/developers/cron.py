@@ -5,7 +5,7 @@ from amo.utils import chunked
 
 import mkt
 from mkt.developers.tasks import region_email, region_exclude
-from mkt.webapps.models import AddonExcludedRegion, Webapp
+from mkt.webapps.models import get_excluded_in, Webapp
 
 
 def _region_email(ids, regions):
@@ -17,10 +17,7 @@ def _region_email(ids, regions):
 @cronjobs.register
 def send_new_region_emails(regions):
     """Email app developers notifying them of new regions added."""
-    excluded = (AddonExcludedRegion.objects
-                .filter(region__in=[r.id for r in regions] +
-                                   [mkt.regions.WORLDWIDE.id])
-                .values_list('addon', flat=True))
+    excluded = get_excluded_in([r.slug for r in regions])
     ids = Webapp.objects.exclude(id__in=excluded).values_list('id', flat=True)
     _region_email(ids, regions)
 
@@ -37,6 +34,4 @@ def exclude_new_region(regions):
     Update regional blacklist for app developers who opted out of being
     automatically added to new regions.
     """
-    ids = (AddonExcludedRegion.objects.values_list('addon', flat=True)
-           .filter(region=mkt.regions.WORLDWIDE.id))
-    _region_exclude(ids, regions)
+    _region_exclude(get_excluded_in(mkt.regions.WORLDWIDE.slug), regions)

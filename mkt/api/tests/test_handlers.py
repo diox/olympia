@@ -22,7 +22,7 @@ from mkt.api.models import Access, generate
 from mkt.api.tests.test_oauth import BaseOAuth, OAuthClient, RestOAuth
 from mkt.constants import carriers, regions
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import AddonExcludedRegion, ContentRating, Webapp
+from mkt.webapps.models import ContentRating, Georestrictions, Webapp
 from reviews.models import Review
 
 
@@ -589,13 +589,13 @@ class TestAppDetail(BaseOAuth, AMOPaths):
         eq_(res.status_code, 404)
 
     def test_nonregion(self):
-        AddonExcludedRegion.objects.create(addon_id=337141, region=regions.BR.id)
+        Georestrictions.objects.get_or_create(addon_id=337141, region_br=False)
         res = self.client.get(self.get_url, data={'region': 'br'})
         eq_(res.status_code, 451)
 
     def test_owner_nonregion(self):
         AddonUser.objects.create(addon_id=337141, user_id=self.user.pk)
-        AddonExcludedRegion.objects.create(addon_id=337141, region=regions.BR.id)
+        Georestrictions.objects.get_or_create(addon_id=337141, region_br=False)
         res = self.client.get(self.get_url, data={'region': 'br'})
         eq_(res.status_code, 200)
 

@@ -46,7 +46,7 @@ class FeaturedAppQuerySet(amo.models.CachingQuerySet):
         excluded = Webapp.objects.none()
         if region:
             from mkt.webapps.models import get_excluded_in
-            excluded = get_excluded_in(region.id)
+            excluded = get_excluded_in(region.slug)
 
         if waffle.switch_is_active('disabled-payments') or not gaia:
             qs = qs.filter(app__premium_type__in=amo.ADDON_FREES)

@@ -11,6 +11,7 @@ from constants.applications import DEVICE_TYPES
 from market.models import Price
 from users.models import UserProfile
 
+import mkt
 from mkt.purchase.utils import payments_enabled
 from mkt.regions import REGIONS_CHOICES_ID_DICT
 from mkt.regions.api import RegionResource
@@ -200,10 +201,9 @@ def es_app_to_dict(obj, region=None, profile=None, request=None):
     if not data['public_stats']:
         data['weekly_downloads'] = None
 
+    regions = set(mkt.regions.ALL_REGION_IDS) - set(obj.region_exclusions)
     data['regions'] = RegionResource().dehydrate_objects(
-        map(REGIONS_CHOICES_ID_DICT.get,
-            app.get_region_ids(worldwide=True,
-                               excluded=obj.region_exclusions)))
+        map(REGIONS_CHOICES_ID_DICT.get, regions))
 
     if src.get('premium_type') in amo.ADDON_PREMIUMS:
         acct = list(AddonPaymentAccount.objects.filter(addon=app))

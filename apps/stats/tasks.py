@@ -502,9 +502,9 @@ def _get_monolith_jobs(date=None):
         # Apps added by package type and region.
         for package_type in ADDON_WEBAPP_TYPES.values():
             package_counts.append({
-                'count': apps.filter(
-                    is_packaged=package_type == 'packaged').exclude(
-                        addonexcludedregion__region=region.id).count,
+                'count': apps.filter(**{
+                    'is_packaged': package_type == 'packaged',
+                    'georestrictions__region_%s' % region_slug: True}).count,
                 'dimensions': {'region': region_slug,
                                'package_type': package_type},
             })
@@ -512,9 +512,9 @@ def _get_monolith_jobs(date=None):
         # Apps added by premium type and region.
         for premium_type, pt_name in ADDON_PREMIUM_API.items():
             premium_counts.append({
-                'count': apps.filter(
-                    premium_type=premium_type).exclude(
-                        addonexcludedregion__region=region.id).count,
+                'count': apps.filter(**{
+                    'premium_type': premium_type,
+                    'georestrictions__region_%s' % region_slug: True}).count,
                 'dimensions': {'region': region_slug,
                                'premium_type': pt_name},
             })
@@ -532,9 +532,9 @@ def _get_monolith_jobs(date=None):
         # Apps available by package type and region.
         for package_type in ADDON_WEBAPP_TYPES.values():
             package_counts.append({
-                'count': apps.filter(
-                    is_packaged=package_type == 'packaged').exclude(
-                        addonexcludedregion__region=region.id).count,
+                'count': apps.filter(**{
+                    'is_packaged': package_type == 'packaged',
+                    'georestrictions__region_%s' % region_slug: True}).count,
                 'dimensions': {'region': region_slug,
                                'package_type': package_type},
             })
@@ -542,9 +542,9 @@ def _get_monolith_jobs(date=None):
         # Apps available by premium type and region.
         for premium_type, pt_name in ADDON_PREMIUM_API.items():
             premium_counts.append({
-                'count': apps.filter(
-                    premium_type=premium_type).exclude(
-                        addonexcludedregion__region=region.id).count,
+                'count': apps.filter(**{
+                    'premium_type': premium_type,
+                    'georestrictions__region_%s' % region_slug: True}).count,
                 'dimensions': {'region': region_slug,
                                'premium_type': pt_name},
             })

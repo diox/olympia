@@ -14,7 +14,7 @@ from mkt.developers.management.commands import (
 from mkt.regions import (ALL_REGION_IDS, REGIONS_CHOICES_ID_DICT,
                          PL, US, WORLDWIDE)
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import AddonExcludedRegion as AER, Webapp
+from mkt.webapps.models import Georestrictions, Webapp
 
 
 class TestRegionManagmentCommand(amo.tests.TestCase):
@@ -59,11 +59,12 @@ class TestRegionManagmentCommand(amo.tests.TestCase):
         app.update(premium_type=amo.ADDON_PREMIUM)
         price = Price.objects.get(id=1)
         AddonPremium.objects.create(addon=app, price=price)
-        AER.objects.create(addon=app, region=WORLDWIDE.id)
-        eq_(len(AER.objects.all()), 1)
+        Georestrictions.get_or_create(addon=app, region_worldwide=False)
+        app = app.reload()
+        eq_(app.georestrictions.region_worldwide, False)
         call_command('check_paid_app_regions', app.app_slug,
                      include_region_id=WORLDWIDE.id)
-        eq_(AER.objects.all().exists(), False)
+        eq_(app.georestrictions.region_worldwide, True)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_exclude_region_by_id(self, mock_stdout):
@@ -71,10 +72,11 @@ class TestRegionManagmentCommand(amo.tests.TestCase):
         app.update(premium_type=amo.ADDON_PREMIUM)
         price = Price.objects.get(id=1)
         AddonPremium.objects.create(addon=app, price=price)
-        eq_(len(AER.objects.all()), 0)
+        Georestrictions.get_or_create(addon=app)
+        eq_(app.georestrictions.region_worldwide, True)
         call_command('check_paid_app_regions', app.app_slug,
                      exclude_region_id=WORLDWIDE.id)
-        eq_(AER.objects.get(addon=app).region, WORLDWIDE.id)
+        eq_(app.georestrictions.region_worldwide, False)
 
     @patch('sys.stdout', new_callable=StringIO)
     @patch('mkt.developers.forms.ALL_PAID_REGION_IDS', new=[PL.id, US.id])

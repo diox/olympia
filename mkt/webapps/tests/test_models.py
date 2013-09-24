@@ -42,8 +42,8 @@ from mkt.constants import APP_FEATURES, apps
 from mkt.site.fixtures import fixture
 from mkt.submit.tests.test_views import BasePackagedAppTest, BaseWebAppTest
 from mkt.webapps.models import (AddonExcludedRegion, AppFeatures, AppManifest,
-                                get_excluded_in, Installed, Webapp,
-                                WebappIndexer)
+                                Georestrictions, get_excluded_in, Installed,
+                                Webapp, WebappIndexer)
 
 
 class TestWebapp(amo.tests.TestCase):
@@ -133,6 +133,11 @@ class TestWebapp(amo.tests.TestCase):
         w = Webapp(app_slug='slug')
         w.save()
         eq_(w.app_slug, 'slug~')
+
+    def test_georestriction_upon_app_creation(self):
+        app = Webapp.objects.create(type=amo.ADDON_WEBAPP)
+        assert app.georestrictions, (
+            'Georestrictions was not created with Webapp.')
 
     def test_get_url_path(self):
         webapp = Webapp(app_slug='woo')
@@ -283,16 +288,15 @@ class TestWebapp(amo.tests.TestCase):
         eq_(Webapp().has_premium(), False)
 
     def test_get_region_ids_no_exclusions(self):
-        # This returns IDs for the *included* regions.
-        eq_(Webapp().get_region_ids(), mkt.regions.REGION_IDS)
+        """This returns IDs for the *included* regions."""
+        eq_(Webapp.objects.create().get_region_ids(), mkt.regions.REGION_IDS)
 
     def test_get_region_ids_with_exclusions(self):
         w1 = Webapp.objects.create()
         w2 = Webapp.objects.create()
 
-        AddonExcludedRegion.objects.create(addon=w1, region=mkt.regions.BR.id)
-        AddonExcludedRegion.objects.create(addon=w1, region=mkt.regions.US.id)
-        AddonExcludedRegion.objects.create(addon=w2, region=mkt.regions.UK.id)
+        w1.georestrictions.exclude_region(['br', 'us'])
+        w2.georestrictions.exclude_region(['uk'])
 
         w1_regions = list(mkt.regions.REGION_IDS)
         w1_regions.remove(mkt.regions.BR.id)
@@ -307,17 +311,18 @@ class TestWebapp(amo.tests.TestCase):
             sorted(w2_regions))
 
     def test_get_regions_no_exclusions(self):
-        # This returns the class definitions for the *included* regions.
-        eq_(sorted(Webapp().get_regions()),
+        """
+        This returns the class definitions for the *included* regions.
+        """
+        eq_(sorted(Webapp.objects.create().get_regions()),
             sorted(mkt.regions.REGIONS_CHOICES_ID_DICT.values()))
 
     def test_get_regions_with_exclusions(self):
         w1 = Webapp.objects.create()
         w2 = Webapp.objects.create()
 
-        AddonExcludedRegion.objects.create(addon=w1, region=mkt.regions.BR.id)
-        AddonExcludedRegion.objects.create(addon=w1, region=mkt.regions.US.id)
-        AddonExcludedRegion.objects.create(addon=w2, region=mkt.regions.UK.id)
+        w1.georestrictions.exclude_region(['br', 'us'])
+        w2.georestrictions.exclude_region(['uk'])
 
         all_regions = mkt.regions.REGIONS_CHOICES_ID_DICT.values()
 
@@ -503,8 +508,8 @@ class TestWebapp(amo.tests.TestCase):
     def test_excluded_in(self):
         app1 = app_factory()
         region = mkt.regions.BR
-        AddonExcludedRegion.objects.create(addon=app1, region=region.id)
-        eq_(get_excluded_in(region.id), [app1.id])
+        app1.georestrictions.exclude_region(region.slug)
+        eq_(get_excluded_in(region.slug), [app1.id])
 
     def test_supported_locale_property(self):
         app = app_factory()
@@ -561,7 +566,7 @@ class TestExclusions(amo.tests.TestCase):
 
     def setUp(self):
         self.app = Webapp.objects.create(premium_type=amo.ADDON_PREMIUM)
-        self.app.addonexcludedregion.create(region=mkt.regions.US.id)
+        self.app.georestrictions.exclude_region(mkt.regions.US.slug)
 
     def make_tier(self):
         self.price = Price.objects.get(pk=1)
@@ -974,7 +979,131 @@ class TestIsComplete(amo.tests.TestCase):
         eq_(self.webapp.is_complete()[0], True)
 
 
+class TestGeorestrictions(amo.tests.WebappTestCase):
+    """TODO: Remove when Georestrictions is legit."""
+
+    def setUp(self):
+        super(TestGeorestrictions, self).setUp()
+        self.geo = self.app.georestrictions
+
+    def test_app_georestrictions(self):
+        assert isinstance(Webapp(id=337141).georestrictions, Georestrictions)
+
+    def test_unicode(self):
+        eq_(unicode(self.geo),
+            u'%s (loose): <Webapp %s>' % (self.geo.id, self.app.id))
+
+    def test__fields(self):
+        _fields = self.geo._fields()
+        for region in mkt.regions.REGIONS_DICT:
+            assert 'region_' + region in _fields
+        for carrier in mkt.carriers.CARRIER_MAP:
+            assert 'carrier_' + carrier in _fields
+
+    def test_to_dict(self):
+        to_dict = self.geo.to_dict()
+        for region in mkt.regions.REGIONS_DICT:
+            eq_(to_dict.get('region_' + region), True)
+        for carrier in mkt.carriers.CARRIER_MAP:
+            eq_(to_dict.get('carrier_' + carrier), True)
+
+        to_dict = self.geo.to_dict(key='region')
+        for region in mkt.regions.REGIONS_DICT:
+            eq_(to_dict.get('region_' + region), True)
+        for carrier in mkt.carriers.CARRIER_MAP:
+            ok_('carrier_' + carrier not in to_dict)
+
+        to_dict = self.geo.to_dict(key='carrier')
+        for region in mkt.regions.REGIONS_DICT:
+            ok_('region_' + region not in to_dict)
+        for carrier in mkt.carriers.CARRIER_MAP:
+            eq_(to_dict.get('carrier_' + carrier), True)
+
+    def test_to_list(self):
+        to_list = self.geo.to_list(key='region', truthy=True)
+
+        for region in mkt.regions.REGIONS_DICT.values():
+            ok_(region in to_list)
+        for carrier in mkt.carriers.CARRIER_MAP.values():
+            ok_(carrier not in to_list)
+
+        to_list = self.geo.to_list(key='carrier', truthy=True)
+        for region in mkt.regions.REGIONS_DICT.values():
+            ok_(region not in to_list)
+        for carrier in mkt.carriers.CARRIER_MAP.values():
+            ok_(carrier in to_list)
+
+        to_list = self.geo.to_list(key='region', truthy=False)
+        eq_(to_list, [])
+
+        to_list = self.geo.to_list(key='carrier', truthy=False)
+        eq_(to_list, [])
+
+        self.geo.exclude_region('br')
+        self.geo.exclude_carrier('telefonica')
+
+        to_list = self.geo.to_list(key='region', truthy=False)
+        eq_(to_list, [mkt.regions.BR])
+
+        to_list = self.geo.to_list(key='carrier', truthy=False)
+        eq_(to_list, [mkt.carriers.TELEFONICA])
+
+    def test_modify_region(self):
+        eq_(self.geo.region_br, True)
+        self.geo.modify('region', 'br', truthy=False)
+        eq_(self.geo.region_br, False)
+        self.geo.modify('region', 'br', truthy=True)
+        eq_(self.geo.region_br, True)
+
+        self.geo.modify('region', mkt.regions.BR.id, truthy=False)
+        eq_(self.geo.region_br, False)
+        self.geo.modify('region', mkt.regions.BR.id, truthy=True)
+        eq_(self.geo.region_br, True)
+
+        self.geo.modify('region', [mkt.regions.BR.id], truthy=False)
+        eq_(self.geo.region_br, False)
+        self.geo.modify('region', [mkt.regions.BR.id], truthy=True)
+        eq_(self.geo.region_br, True)
+
+    def test_exclude_region(self):
+        self.geo.exclude_region(mkt.regions.BR.id)
+        expected = set(mkt.regions.ALL_REGION_IDS) - set([mkt.regions.BR.id])
+        self.assertSetEqual(self.app.get_region_ids(worldwide=True),
+            expected)
+
+        excluded = [mkt.regions.CO.id, mkt.regions.US.id]
+        expected -= set(excluded)
+        self.geo.exclude_region(excluded)
+        self.assertSetEqual(self.app.get_region_ids(worldwide=True),
+            expected)
+
+    def test_include_region(self):
+        excluded = [mkt.regions.BR.id, mkt.regions.CO.id, mkt.regions.US.id]
+        expected = set(mkt.regions.ALL_REGION_IDS) - set(excluded)
+
+        self.geo.exclude_region(excluded)
+        self.assertSetEqual(self.app.get_region_ids(worldwide=True),
+            expected)
+
+        expected |= set([mkt.regions.CO.id])
+        self.geo.include_region(mkt.regions.CO.id)
+        self.assertSetEqual(self.app.get_region_ids(worldwide=True),
+            expected)
+
+        expected |= set([mkt.regions.BR.id, mkt.regions.US.id])
+        self.geo.include_region([mkt.regions.BR.id, mkt.regions.US.id])
+        self.assertSetEqual(self.app.get_region_ids(worldwide=True),
+            expected)
+
+    def test_exclude_carrier(self):
+        """TODO"""
+
+    def test_include_carrier(self):
+        """TODO"""
+
+
 class TestAddonExcludedRegion(amo.tests.WebappTestCase):
+    """TODO: Remove when Georestrictions is legit."""
 
     def setUp(self):
         super(TestAddonExcludedRegion, self).setUp()

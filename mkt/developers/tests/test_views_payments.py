@@ -25,7 +25,7 @@ import mkt
 from mkt.developers.models import (AddonPaymentAccount, PaymentAccount,
                                    SolitudeSeller, uri_to_pk, UserInappKey)
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import AddonExcludedRegion as AER, ContentRating
+from mkt.webapps.models import ContentRating
 
 # Id without any significance but to be different of 1.
 TEST_PACKAGE_ID = 2
@@ -261,11 +261,8 @@ class TestPayments(amo.tests.TestCase):
     def get_webapp(self):
         return Addon.objects.get(pk=337141)
 
-    def get_region_list(self):
-        return list(AER.objects.values_list('region', flat=True))
-
     def get_postdata(self, extension):
-        base = {'regions': self.get_region_list(),
+        base = {'regions': self.webapp.get_excluded_region_ids(),
                 'free_platforms': ['free-%s' % dt.class_name for dt in
                                    self.webapp.device_types],
                 'paid_platforms': ['paid-%s' % dt.class_name for dt in
@@ -798,17 +795,13 @@ class TestRegions(amo.tests.TestCase):
         extension.update(kwargs)
         return extension
 
-    def get_excluded_ids(self):
-        return sorted(AER.objects.filter(addon=self.webapp)
-                                 .values_list('region', flat=True))
-
     def test_edit_other_categories_are_not_excluded(self):
         # Keep the category around for good measure.
         Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')
 
         r = self.client.post(self.url, self.get_dict())
         self.assertNoFormErrors(r)
-        eq_(AER.objects.count(), 0)
+        eq_(self.webapp.reload().get_excluded_region_ids(), [])
 
     def test_brazil_games_form_disabled(self):
         games = Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')

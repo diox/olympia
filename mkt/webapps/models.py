@@ -149,6 +149,8 @@ class Webapp(Addon):
         if creating:
             # Set the slug once we have an id to keep things in order.
             self.update(slug='app-%s' % self.id)
+            if not hasattr(self, '_georestrictions'):
+                Georestrictions.objects.create(addon=self)
 
     @staticmethod
     def transformer(apps):
@@ -198,6 +200,12 @@ class Webapp(Addon):
         for t in transforms:
             qs = apps.transform(t)
         return qs
+
+    @property
+    def georestrictions(self):
+        if hasattr(self, '_georestrictions'):
+            return self._georestrictions
+        return Georestrictions.objects.create(addon=self)
 
     def get_api_url(self, action=None, api=None, resource=None, pk=False):
         """Reverse a URL for the API."""
@@ -557,22 +565,14 @@ class Webapp(Addon):
         except IndexError:
             pass
 
-    def get_region_ids(self, worldwide=False, excluded=None):
+    def get_region_ids(self, worldwide=False):
         """
         Return IDs of regions in which this app is listed.
-
-        If `excluded` is provided we'll use that instead of doing our own
-        excluded lookup.
         """
-        if worldwide:
-            all_ids = mkt.regions.ALL_REGION_IDS
-        else:
-            all_ids = mkt.regions.REGION_IDS
-        if excluded is None:
-            excluded = list(self.addonexcludedregion
-                                .values_list('region', flat=True))
-
-        return sorted(set(all_ids) - set(excluded or []))
+        included = [x.id for x in self.georestrictions.to_list('region')]
+        if not worldwide:
+            included.remove(mkt.regions.WORLDWIDE.id)
+        return sorted(included)
 
     def get_excluded_region_ids(self):
         """
@@ -584,8 +584,8 @@ class Webapp(Addon):
 
         Note: free and in-app are not included in this.
         """
-        excluded = set(self.addonexcludedregion
-                           .values_list('region', flat=True))
+        excluded = [x.id for x in self.georestrictions.to_list('region',
+                                                               truthy=False)]
 
         if self.is_premium():
             all_regions = set(mkt.regions.ALL_REGION_IDS)
@@ -1447,19 +1447,103 @@ class AddonExcludedRegion(amo.models.ModelBase):
 
 
 @memoize(prefix='get_excluded_in')
-def get_excluded_in(region_id):
+def get_excluded_in(region_slugs):
     """Return IDs of Webapp objects excluded from a particular region."""
-    return list(AddonExcludedRegion.objects.filter(region=region_id)
+    if not isinstance(region_slugs, (list, tuple)):
+        region_slugs = [region_slugs]
+    for slug in region_slugs:
+        assert mkt.regions.REGIONS_DICT[slug]
+    filter_ = dict(('region_%s' % slug, False) for slug in region_slugs)
+    return list(Georestrictions.objects.filter(**filter_)
                 .values_list('addon', flat=True))
 
 
-@receiver(models.signals.post_save, sender=AddonExcludedRegion,
+class Georestrictions(amo.models.ModelBase):
+    addon = models.OneToOneField('addons.Addon', related_name='_georestrictions')
+    use_strict = models.BooleanField()
+    enable_new_regions = models.BooleanField()
+
+    class Meta:
+        db_table = 'webapps_georestrictions'
+
+    def __unicode__(self):
+        return u'%s (%s): <Webapp %s>' % (self.id,
+            'strict' if self.use_strict else 'loose', self.addon.id)
+
+    def _fields(self, key=None):
+        """
+        Returns list of all field names starting with 'region_' or 'carrier_'.
+        """
+        return [f.name for f in self._meta.fields
+                if f.name.startswith(key or ('region_', 'carrier_'))]
+
+    def to_dict(self, key=None):
+        return dict((f, getattr(self, f)) for f in self._fields(key))
+
+    def to_keys(self, key=None, truthy=True):
+        return [k for k, v in self.to_dict(key).iteritems() if v == truthy]
+
+    def to_list(self, key, truthy=True):
+        """
+        Returns a list representing the truthy/falsy values of this app's
+        georestrictions.
+        """
+        if key not in ('region', 'carrier'):
+            raise ValueError("`key` must be 'region' or 'carrier'")
+
+        valid_keys = self.to_keys(key, truthy)
+
+        # Strip `{key}_` prefix from each key.
+        if key == 'region':
+            items = [mkt.regions.REGIONS_DICT[x[len('region_'):]]
+                     for x in valid_keys]
+        elif key == 'carrier':
+            items = [mkt.carriers.CARRIER_MAP[x[len('carrier_'):]]
+                     for x in valid_keys]
+
+        return sorted(items)
+
+    def modify(self, key, slugs, truthy=True):
+        if not isinstance(slugs, (list, tuple)):
+            slugs = [slugs]
+
+        # If you were lazy and supplied a list of ids instead of slugs, fine.
+        lookup = mkt.regions.REGIONS_CHOICES_ID_DICT
+        for idx, slug in enumerate(slugs):
+            if str(slug).isdigit():
+                slugs[idx] = lookup[int(slug)].slug
+
+        return self.update(
+            **dict(('%s_%s' % (key, slug), truthy) for slug in slugs))
+
+    def exclude_region(self, region_slugs):
+        return self.modify('region', region_slugs, False)
+
+    def exclude_carrier(self, region_slugs):
+        return self.modify('carrier', region_slugs, False)
+
+    def include_region(self, region_slugs):
+        return self.modify('region', region_slugs, True)
+
+    def include_carrier(self, region_slugs):
+        return self.modify('region', region_slugs, True)
+
+
+# Add a dynamic field to `Georestrictions` model for each region and carrier.
+for k, v in sorted(mkt.regions.REGIONS_DICT.iteritems()):
+    field = models.BooleanField(default=True, help_text=v.name)
+    field.contribute_to_class(Georestrictions, 'region_%s' % k.lower())
+for k, v in sorted(mkt.carriers.CARRIER_MAP.iteritems()):
+    field = models.BooleanField(default=True, help_text=v.name)
+    field.contribute_to_class(Georestrictions, 'carrier_%s' % k.lower())
+
+
+@receiver(models.signals.post_save, sender=Georestrictions,
           dispatch_uid='clean_memoized_exclusions')
 def clean_memoized_exclusions(sender, **kw):
     if not kw.get('raw'):
-        for k in mkt.regions.ALL_REGION_IDS:
-            cache.delete_many([memoize_key('get_excluded_in', k)
-                               for k in mkt.regions.ALL_REGION_IDS])
+        cache.delete_many([memoize_key('get_excluded_in', r.slug)
+                           for r in mkt.regions.ALL_REGIONS])
 
 
 class ContentRating(amo.models.ModelBase):

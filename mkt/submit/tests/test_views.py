@@ -30,7 +30,7 @@ from mkt.site.fixtures import fixture
 from mkt.submit.forms import AppFeaturesForm, NewWebappVersionForm
 from mkt.submit.models import AppSubmissionChecklist
 from mkt.submit.decorators import read_dev_agreement_required
-from mkt.webapps.models import AddonExcludedRegion as AER, AppFeatures, Webapp
+from mkt.webapps.models import AppFeatures, Webapp
 
 
 class TestSubmit(amo.tests.TestCase):
@@ -939,7 +939,7 @@ class TestDetails(TestSubmit):
 
         r = self.client.post(self.url, self.get_dict(categories=[games.id]))
         self.assertNoFormErrors(r)
-        eq_(list(AER.objects.values_list('region', flat=True)),
+        eq_(self.webapp.get_excluded_region_ids(),
             [mkt.regions.BR.id])
 
     def test_other_categories_are_not_excluded(self):
@@ -949,7 +949,7 @@ class TestDetails(TestSubmit):
 
         r = self.client.post(self.url, self.get_dict())
         self.assertNoFormErrors(r)
-        eq_(AER.objects.count(), 0)
+        eq_(self.webapp.get_excluded_region_ids(), [])
 
 
 class TestDone(TestSubmit):

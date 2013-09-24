@@ -24,8 +24,7 @@ import mkt
 from mkt.developers import forms
 from mkt.developers.tests.test_views_edit import TestAdmin
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import (AddonExcludedRegion as AER, ContentRating,
-                                Webapp)
+from mkt.webapps.models import ContentRating, Webapp
 from mkt.zadmin.models import FeaturedApp
 
 
@@ -133,7 +132,7 @@ class TestCategoryForm(amo.tests.WebappTestCase):
         eq_(self.form.max_categories(), 12)  # 2 (default) + 10 (above)
 
     def test_unavailable_special_cats(self):
-        AER.objects.create(addon=self.app, region=mkt.regions.WORLDWIDE.id)
+        self.app.geostrictions.exclude_region(mkt.regions.WORLDWIDE.slug)
 
         self._make_form()
         eq_(self._cat_count(), 1)
@@ -164,7 +163,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
         eq_(form.initial['other_regions'], True)
 
     def test_initial_excluded_in_region(self):
-        AER.objects.create(addon=self.app, region=mkt.regions.BR.id)
+        self.app.geostrictions.exclude_region(mkt.regions.BR.slug)
 
         regions = list(mkt.regions.REGION_IDS)
         regions.remove(mkt.regions.BR.id)
@@ -176,8 +175,8 @@ class TestRegionForm(amo.tests.WebappTestCase):
         eq_(form.initial['other_regions'], True)
 
     def test_initial_excluded_in_regions_and_future_regions(self):
-        for region in [mkt.regions.BR, mkt.regions.UK, mkt.regions.WORLDWIDE]:
-            AER.objects.create(addon=self.app, region=region.id)
+        for region in (mkt.regions.BR, mkt.regions.UK, mkt.regions.WORLDWIDE):
+            self.app.geostrictions.exclude_region(region.slug)
 
         regions = list(mkt.regions.REGION_IDS)
         regions.remove(mkt.regions.BR.id)
@@ -350,7 +349,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
 
     def test_paid_enable_region(self):
         for region in mkt.regions.ALL_REGION_IDS:
-            AER.objects.create(addon=self.app, region=region)
+            self.app.geostrictions.exclude_region(region)
         self.app.update(premium_type=amo.ADDON_PREMIUM)
         price = Price.objects.get(id=1)
         AddonPremium.objects.create(addon=self.app,
@@ -423,7 +422,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
         eq_(form.initial['other_regions'], True)
 
     def test_brazil_games_already_excluded(self):
-        AER.objects.create(addon=self.app, region=mkt.regions.BR.id)
+        self.app.geostrictions.exclude_region(mkt.regions.BR.slug)
 
         games = Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')
         AddonCategory.objects.create(addon=self.app, category=games)
@@ -464,7 +463,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
         eq_(self.app.get_region_ids(True), mkt.regions.REGION_IDS)
 
     def test_reinclude_region(self):
-        AER.objects.create(addon=self.app, region=mkt.regions.BR.id)
+        self.app.georestrictions.exclude_region(mkt.regions.BR.slug)
 
         form = forms.RegionForm(data={'regions': mkt.regions.REGION_IDS,
                                       'other_regions': True}, **self.kwargs)
@@ -473,7 +472,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
         eq_(self.app.get_region_ids(True), mkt.regions.ALL_REGION_IDS)
 
     def test_reinclude_worldwide(self):
-        AER.objects.create(addon=self.app, region=mkt.regions.WORLDWIDE.id)
+        self.app.georestrictions.exclude_region(mkt.regions.WORLDWIDE.slug)
 
         form = forms.RegionForm(data={'regions': mkt.regions.REGION_IDS,
                                       'other_regions': True}, **self.kwargs)
@@ -494,8 +493,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
         assert form.is_valid(), form.errors
         form.save()
         eq_(self.app.enable_new_regions, True)
-        eq_(self.app.addonexcludedregion.filter(
-            region=mkt.regions.WORLDWIDE.id).exists(), False)
+        eq_(self.app.georestrictions.region_worldwide, True)
 
     def test_worldwide_invalid_choice_paid(self):
         self.app.update(premium_type=amo.ADDON_PREMIUM)

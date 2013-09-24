@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 import amo
 from mkt.developers.forms import RegionForm
 from mkt.regions import ALL_REGION_IDS, REGIONS_CHOICES_ID_DICT
-from mkt.webapps.models import AddonExcludedRegion as AER, Webapp
+from mkt.webapps.models import Webapp
 
 ALL_REGIONS = set(ALL_REGION_IDS)
 DIVIDER = '-' * 28
@@ -37,11 +37,6 @@ class Command(BaseCommand):
     def write_error(self, value=''):
         self.stderr.write(value + '\n')
 
-    def get_regions(self, app):
-        region_excludes = (AER.objects.filter(addon=app)
-                              .values_list('region', flat=True))
-        return ALL_REGIONS.difference(region_excludes)
-
     def get_bad_regions(self, app, regions):
         # Initialise RegionForm so we can get the disabled region data
         # based on our app.
@@ -59,38 +54,24 @@ class Command(BaseCommand):
         return regions.intersection(region_form.disabled_regions)
 
     def exclude_region(self, app, app_slug, exclude_region_id):
-        aer, created = AER.objects.get_or_create(addon=app,
-                                                 region=exclude_region_id)
-        if not created:
-            self.write_error('Could not create exclusion record for '
-                             'region_id %s (%s). It already exists' % (
-                             exclude_region_id,
-                             self._region_name(exclude_region_id)))
-        else:
-            self.write_output('')
-            self.write_output("Excluding from region_id %s (%s) for "
-                              "app '%s'" % (exclude_region_id,
-                              self._region_name(exclude_region_id),
-                              app_slug))
-            self.include_exclude_region = True
+        app.georestrictions.exclude_region(exclude_region_id)
+        self.write_output('')
+        self.write_output("Excluding from region_id %s (%s) for "
+                          "app '%s'" % (exclude_region_id,
+                          self._region_name(exclude_region_id),
+                          app_slug))
+        self.include_exclude_region = True
 
     def include_region(self, app, app_slug, include_region_id):
         self.write_output()
-        self.write_output("Including from region_id %s (%s) for app "
+        self.write_output("Including region_id %s (%s) for app "
                           "'%s'" % (include_region_id,
                           self._region_name(include_region_id),
                           app_slug))
-        try:
-            aer = AER.objects.get(addon=app, region=include_region_id)
-            aer.delete()
-            self.include_exclude_region = True
-        except AER.DoesNotExist:
-            self.write_error('Could not remove exclusion record for '
-                             'region_id %s (%s)' % (include_region_id,
-                             self._region_name(include_region_id)))
+        app.georestrictions.include_region(include_region_id)
 
     def output_regions(self, app, app_slug):
-        regions = self.get_regions(app)
+        regions = app.get_region_ids()
         bad_regions = self.get_bad_regions(app, regions)
 
         self.write_output('App Slug: %s' % app_slug)

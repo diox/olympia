@@ -45,7 +45,7 @@ from mkt.constants.ratingsbodies import (ALL_RATINGS, RATINGS_BODIES,
                                          RATINGS_BY_NAME)
 from mkt.site.forms import AddonChoiceField
 from mkt.regions import ALL_PAID_REGION_IDS, ALL_REGION_IDS
-from mkt.webapps.models import AddonExcludedRegion, ContentRating, Webapp
+from mkt.webapps.models import ContentRating, Webapp
 from mkt.webapps.tasks import index_webapps
 from mkt.zadmin.models import FeaturedApp
 
@@ -62,11 +62,9 @@ def ban_game_in_brazil(app):
         if (app.categories.filter(id=games.id) and app.listed_in(r) and
             not app.content_ratings_in(r)):
 
-            g, c = AddonExcludedRegion.objects.get_or_create(
-                addon=app, region=r.id)
-            if c:
-                log.info(u'[Webapp:%s] Game excluded from new region '
-                         u'(%s).' % (app, r.id))
+            app.georestrictions.exclude_region(r.slug)
+            log.info(u'[Webapp:%s] Game excluded from new region '
+                     u'(%s).' % (app, r.id))
 
 
 class AuthorForm(happyforms.ModelForm):
@@ -695,8 +693,8 @@ class RegionForm(forms.Form):
 
         # If we have future excluded regions, uncheck box.
         # Note: this is currently only relevant for non-paid apps.
-        self.future_exclusions = self.product.addonexcludedregion.filter(
-            region=mkt.regions.WORLDWIDE.id)
+        self.future_exclusions = (
+            not self.product.georestrictions.region_worldwide)
 
         self.initial = {
             'regions': self.regions_before,
@@ -819,17 +817,15 @@ class RegionForm(forms.Form):
         # Add new region exclusions.
         to_add = before - after
         for r in to_add:
-            g, c = AddonExcludedRegion.objects.get_or_create(
-                addon=self.product, region=r)
-            if c:
-                log.info(u'[Webapp:%s] Excluded from new region (%s).'
-                         % (self.product, r))
+            self.product.georestrictions.exclude_region(r)
+            log.info(u'[Webapp:%s] Excluded from new region (%s).'
+                     % (self.product, r))
 
         # Remove old region exclusions.
         to_remove = after - before
         for r in to_remove:
-            self.product.addonexcludedregion.filter(region=r).delete()
-            log.info(u'[Webapp:%s] No longer exluded from region (%s).'
+            self.product.georestrictions.include_region(r)
+            log.info(u'[Webapp:%s] No longer excluded from region (%s).'
                      % (self.product, r))
 
         if self.cleaned_data['other_regions']:
@@ -837,28 +833,33 @@ class RegionForm(forms.Form):
             # For a paid app enable_new_regions is distinct from
             # the worldwide region.
             if self._product_is_paid():
+                # TODO: Remove this column on `addons`.
                 self.product.update(enable_new_regions=True)
+                self.product.georestrictions.update(enable_new_regions=True)
                 log.info(u'[Webapp:%s] will be added to future regions.'
                      % self.product)
             else:
                 # Developer wants to be visible in future regions, then
                 # delete excluded regions.
                 self.future_exclusions.delete()
+                self.product.georestrictions.include_region(
+                    mkt.regions.WORLDWIDE.slug)
                 log.info(u'[Webapp:%s] No longer excluded from future regions.'
                      % self.product)
         else:
             if self._product_is_paid():
-                self.product.update(enable_new_regions=False)
+                # TODO: Remove this column on `addons`.
+                self.product.update(enable_new_regions=True)
+                self.product.georestrictions.update(enable_new_regions=True)
                 log.info(u'[Webapp:%s] will not be added to future regions.'
                      % self.product)
             else:
                 # Developer does not want future regions, then
                 # exclude all future apps.
-                g, c = AddonExcludedRegion.objects.get_or_create(
-                    addon=self.product, region=mkt.regions.WORLDWIDE.id)
-                if c:
-                    log.info(u'[Webapp:%s] Excluded from future regions.'
-                             % self.product)
+                self.product.georestrictions.exclude_region(
+                    mkt.regions.WORLDWIDE.slug)
+                log.info(u'[Webapp:%s] Excluded from future regions.'
+                         % self.product)
 
         ban_game_in_brazil(self.product)
 
@@ -904,14 +905,10 @@ class CategoryForm(happyforms.Form):
             # Don't make any more requests if we don't have any permissions.
             return Category.objects.none()
 
-        # Get the list of regions that the app is excluded from.
-        exclude_regs = self.product.addonexcludedregion.values_list(
-            'region', flat=True)
-
         # Find all the supervised categories, excluding categories which are
         # unavailable for the current app.
         return (Category.objects.filter(id__in=sup_of)
-                                .exclude(region__in=exclude_regs))
+                .exclude(region__in=self.product.get_excluded_region_ids()))
 
     def max_categories(self):
         return amo.MAX_CATEGORIES + self.special_cats().count()
@@ -965,15 +962,12 @@ class CategoryForm(happyforms.Form):
             r = mkt.regions.BR.id
 
             if games.id in to_add:
-                g, c = AddonExcludedRegion.objects.get_or_create(
-                    addon=self.product, region=r)
-                if c:
-                    log.info(u'[Webapp:%s] Game excluded from new region '
-                              '(%s).' % (self.product, r))
-
+                self.product.georestrictions.exclude_region(r)
+                log.info(u'[Webapp:%s] Game excluded from new region '
+                          '(%s).' % (self.product, r))
             elif games.id in to_remove:
-                self.product.addonexcludedregion.filter(region=r).delete()
-                log.info(u'[Webapp:%s] Game no longer exluded from region '
+                self.product.georestrictions.include_region(r)
+                log.info(u'[Webapp:%s] Game no longer excluded from region '
                           '(%s).' % (self.product, r))
 
 

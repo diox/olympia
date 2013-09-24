@@ -90,7 +90,7 @@ class AppResource(CORSResource, MarketplaceModelResource):
         # apps.
         self._meta.queryset_base = Webapp.objects.all()
         self._meta.queryset = self._meta.queryset_base.exclude(
-            id__in=get_excluded_in(REGIONS_DICT[get_region()].id))
+            id__in=get_excluded_in(REGIONS_DICT[get_region()].slug))
         return super(AppResource, self).dispatch(request_type, request,
                                                  **kwargs)
 

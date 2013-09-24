@@ -17,7 +17,7 @@ import mkt.regions
 from mkt.api.base import get_url, list_url
 from mkt.api.tests.test_oauth import BaseOAuth
 from mkt.site.fixtures import fixture
-from mkt.webapps.models import AddonExcludedRegion, Webapp
+from mkt.webapps.models import Georestrictions, Webapp
 
 
 class TestRatingResource(BaseOAuth, AMOPaths):
@@ -142,8 +142,7 @@ class TestRatingResource(BaseOAuth, AMOPaths):
 
     @patch('mkt.ratings.resources.get_region')
     def test_get_nonregion(self, get_region_mock):
-        AddonExcludedRegion.objects.create(addon=self.app,
-                                           region=mkt.regions.BR.id)
+        Georestrictions.objects.get_or_create(addon=self.app, region_br=False)
         get_region_mock.return_value = 'br'
         res, data = self._get_single(app=self.app.app_slug)
         eq_(res.status_code, 400)
@@ -247,8 +246,7 @@ class TestRatingResource(BaseOAuth, AMOPaths):
 
     @patch('mkt.ratings.resources.get_region')
     def test_create_for_nonregion(self, get_region_mock):
-        AddonExcludedRegion.objects.create(addon=self.app,
-                                           region=mkt.regions.BR.id)
+        Georestrictions.objects.get_or_create(addon=self.app, region_br=False)
         get_region_mock.return_value = 'br'
         res, data = self._create()
         eq_(400, res.status_code)

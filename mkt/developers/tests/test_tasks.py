@@ -28,7 +28,7 @@ import mkt
 from mkt.developers import tasks
 from mkt.site.fixtures import fixture
 from mkt.submit.tests.test_views import BaseWebAppTest
-from mkt.webapps.models import AddonExcludedRegion as AER, Webapp
+from mkt.webapps.models import Webapp
 
 
 def test_resize_icon_shrink():
@@ -532,25 +532,13 @@ class TestRegionEmail(amo.tests.WebappTestCase):
 
 class TestRegionExclude(amo.tests.WebappTestCase):
 
-    def test_exclude_no_apps(self):
-        tasks.region_exclude([], [])
-        eq_(AER.objects.count(), 0)
-
-        tasks.region_exclude([], [mkt.regions.UK])
-        eq_(AER.objects.count(), 0)
-
-    def test_exclude_no_regions(self):
-        tasks.region_exclude([self.app.id], [])
-        eq_(AER.objects.count(), 0)
-
     def test_exclude_one_new_region(self):
+        eq_(self.app.get_excluded_region_ids(), [])
         tasks.region_exclude([self.app.id], [mkt.regions.UK])
-        excluded = list(AER.objects.filter(addon=self.app)
-                        .values_list('region', flat=True))
-        eq_(excluded, [mkt.regions.UK.id])
+        eq_(self.app.get_excluded_region_ids(), [mkt.regions.UK.id])
 
     def test_exclude_several_new_regions(self):
+        eq_(self.app.get_excluded_region_ids(), [])
         tasks.region_exclude([self.app.id], [mkt.regions.US, mkt.regions.UK])
-        excluded = sorted(AER.objects.filter(addon=self.app)
-                          .values_list('region', flat=True))
-        eq_(excluded, sorted([mkt.regions.US.id, mkt.regions.UK.id]))
+        eq_(self.app.get_excluded_region_ids(),
+            sorted([mkt.regions.US.id, mkt.regions.UK.id]))

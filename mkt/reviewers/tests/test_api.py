@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 
-from mock import patch
 from nose.tools import eq_
 from test_utils import RequestFactory
 
@@ -222,7 +221,7 @@ class TestApiReviewer(BaseOAuth, ESTestCase):
         eq_(error.keys(), ['type'])
 
     def test_no_region_filtering(self):
-        self.webapp.addonexcludedregion.create(region=mkt.regions.BR.id)
+        self.webapp.georestrictions.exclude_region(mkt.regions.BR.slug)
         self.webapp.save()
         self.refresh('webapp')
 
