@@ -1,4 +1,3 @@
-from itertools import repeat
 import json
 import os
 import tempfile
