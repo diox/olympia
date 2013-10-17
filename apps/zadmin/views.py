@@ -630,8 +630,13 @@ def email_devs(request):
                 qs = qs.filter(addon__enable_new_regions=True)
             elif data['recipients'] == 'payments_region_disabled':
                 qs = qs.filter(addon__enable_new_regions=False)
-        elif data['recipients'] == 'apps':
+        elif data['recipients'] in ('apps', 'free_apps_region_enabled',
+                                    'free_apps_region_disabled'):
             qs = qs.filter(addon__type=amo.ADDON_WEBAPP)
+            if data['recipients'] == 'free_apps_region_enabled':
+                qs = qs.filter(addon__enable_new_regions=True)
+            elif data['recipients'] == 'free_apps_region_disabled':
+                qs = qs.filter(addon__enable_new_regions=False)
         elif data['recipients'] == 'desktop_apps':
             qs = (qs.filter(addon__type=amo.ADDON_WEBAPP,
                 addon__addondevicetype__device_type=amo.DEVICE_DESKTOP.id))

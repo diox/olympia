@@ -506,8 +506,10 @@ class TestCase(MockEsMixin, RedisTest, test_utils.TestCase):
         return days_ago(days)
 
     def login(self, profile):
-        assert self.client.login(username=getattr(profile, 'email', profile),
-                                 password='password')
+        email = getattr(profile, 'email', profile)
+        if '@' not in email:
+            email += '@mozilla.com'
+        assert self.client.login(username=email, password='password')
 
     def trans_eq(self, trans, locale, localized_string):
         eq_(Translation.objects.get(id=trans.id,
