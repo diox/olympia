@@ -4,7 +4,6 @@ define('payments', [], function() {
     var currentPrice;
     var $regions = $('#region-list');
     var $regionsIsland = $('#regions');
-    var $regionCheckboxes = $regions.find('input[type=checkbox]');
 
     var regionsData = $regions.data();
 
@@ -99,14 +98,10 @@ define('payments', [], function() {
                    'top': oldOffset.top,
                    'zIndex': zIndex});
 
-        element.hide();
-        $temp.animate({'top': parseInt(newOffset.top, 10), 'left': parseInt(newOffset.left, 10) }, 'slow', function(){
-            $temp.remove();
-            $element.show();
-            if ($elmToRemove) {
-                $elmToRemove.hide(500, function() { this.remove(); });
-            }
-        });
+        $element.show();
+        if ($elmToRemove) {
+            $elmToRemove.hide(500, function() { this.remove(); });
+        }
     }
 
     function createTableRow(checkBox, ident, localPriceText, localMethodText) {
@@ -253,6 +248,17 @@ define('payments', [], function() {
             $paid_island.toggle(tab.id == 'paid-tab-header');
             $free_island.toggle(tab.id == 'free-tab-header');
         });
+
+        z.doc.on('change', '#regions input[name=restricted]:checked', function() {
+            var restricted = !!+$(this).val();
+            $('.restricted').toggle(restricted);
+            if (!restricted) {
+                $('input.restricted').attr('checked', '');
+            }
+            window.location.hash = $('#regions-island').attr('id') ||
+                                   $('#paid-regions-island').attr('id');
+        });
+        $('#regions input[name=restricted]:checked').trigger('change');
 
         // Only update if we can edit. If the user can't edit all fields will be disabled.
         if (!z.body.hasClass('no-edit')) {

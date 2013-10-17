@@ -120,9 +120,6 @@
             margin-bottom: .25em;
         }
     }
-    #regions button {
-        margin-top: 14px;
-    }
 }
 
 .devhub-form .learn-more {
@@ -469,6 +466,64 @@ body > label {
     margin-bottom: 1em;
 }
 
+#regions {
+    // Less room to breathe for radios.
+    input[type=radio] {
+        margin: 1px 3px 1px 1px;
+    }
+    li + li input[type=radio] {
+        margin-top: 6px;
+    }
+    // More room to breathe for region checkboxes.
+    [data-region] input[type=checkbox] {
+        margin-right: 6px;
+    }
+}
+
+#regions-island {
+    h2 {
+        margin-top: 1.5em;
+    }
+
+    #regions {
+        // Some nicer formatting around the radio buttons.
+        > ul {
+            margin: 2px 2px 0;
+        }
+        header,
+        .region-choices,
+        .disabled-regions {
+            margin: 10px 22px 5px;
+        }
+        header {
+            margin-top: 0;
+        }
+        .toggles {
+            padding-top: 0;
+        }
+    }
+}
+
+.paid-regions {
+    margin-top: 1.5em;
+}
+
+// Do not show the unavailable region choices for paid apps.
+.paid-regions + .region-choices {
+    display: none !important;
+}
+
 .region-choices li {
     min-height: 19px;
+}
+
+.new {
+    color: red;
+    font-size: 10px;
+    letter-spacing: -.5px;
+    text-transform: uppercase;
+}
+
+#regions li label {
+    font-weight: normal;
 }
