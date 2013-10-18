@@ -56,8 +56,39 @@ class DJCTQ(object):
            'MJ6BC270E8PTBRNN.htm')
 
 
+class GENERIC_0(object):
+    name = '0+'
+    id = 0
+    description = _lazy(u'General Audiences')
+
+
+class GENERIC_10(object):
+    name = '10+'
+    id = 1
+    description = _lazy(u'Not recommended for viewers younger than 10 years '
+                        u'of age')
+
+
+class GENERIC_13(object):
+    name = '13+'
+    id = 2
+    description = _lazy(u'Not recommended for viewers younger than 13 years '
+                        u'of age')
+
+
+class GENERIC(object):
+    """
+    The generic game ratings body (used in Germany, for example).
+    """
+    id = 1
+    ratings = [GENERIC_0, GENERIC_10, GENERIC_13]
+    name = 'GENERIC'
+    full_name = _lazy(u'Generic')
+
+
 RATINGS_BODIES = {
     DJCTQ.id: DJCTQ,
+    GENERIC.id: GENERIC
 }
 ALL_RATINGS = []
 for rb in RATINGS_BODIES.values():

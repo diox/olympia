@@ -185,7 +185,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
 
             eq_(self.app.get_region_ids(True), to_exclude)
 
-    def test_brazil_games_excluded(self):
+    def test_unrated_games_excluded(self):
         games = Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')
         AddonCategory.objects.create(addon=self.app, category=games)
 
@@ -198,15 +198,18 @@ class TestRegionForm(amo.tests.WebappTestCase):
         form.save()
 
         # No matter what the developer tells us, still exclude Brazilian
-        # games.
+        # and German games.
         form = forms.RegionForm(data=None, **self.kwargs)
         eq_(set(form.initial['regions']),
             set(mkt.regions.REGION_IDS) -
-            set([mkt.regions.BR.id, mkt.regions.WORLDWIDE.id]))
+            set([mkt.regions.BR.id, mkt.regions.DE.id,
+                 mkt.regions.WORLDWIDE.id]))
         eq_(form.initial['enable_new_regions'], True)
 
-    def test_brazil_games_already_excluded(self):
-        AER.objects.create(addon=self.app, region=mkt.regions.BR.id)
+    def test_unrated_games_already_excluded(self):
+        regions = [mkt.regions.BR.id, mkt.regions.DE.id]
+        for region in regions:
+            AER.objects.create(addon=self.app, region=region)
 
         games = Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')
         AddonCategory.objects.create(addon=self.app, category=games)
@@ -220,14 +223,15 @@ class TestRegionForm(amo.tests.WebappTestCase):
         form = forms.RegionForm(data=None, **self.kwargs)
         eq_(set(form.initial['regions']),
             set(mkt.regions.REGION_IDS) -
-            set([mkt.regions.BR.id, mkt.regions.WORLDWIDE.id]))
+            set(regions + [mkt.regions.WORLDWIDE.id]))
         eq_(form.initial['enable_new_regions'], True)
 
-    def test_brazil_games_with_content_rating(self):
+    def test_rated_games_with_content_rating(self):
         # This game has a government content rating!
-        rb = mkt.regions.BR.ratingsbodies[0]
-        ContentRating.objects.create(
-            addon=self.app, ratings_body=rb.id, rating=rb.ratings[0].id)
+        for region in (mkt.regions.BR, mkt.regions.DE):
+            rb = region.ratingsbodies[0]
+            ContentRating.objects.create(
+                addon=self.app, ratings_body=rb.id, rating=rb.ratings[0].id)
 
         games = Category.objects.create(type=amo.ADDON_WEBAPP, slug='games')
         AddonCategory.objects.create(addon=self.app, category=games)
