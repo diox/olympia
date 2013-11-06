@@ -1,13 +1,18 @@
 {{ region_form.regions.errors }}
-<div class="hidden restricted checkbox-choices region-choices"{% if not is_paid %} id="region-list" data-disabled-regions="{{ region_form.disabled_regions|json }}"{% endif %}>
+<div class="hidden restricted checkbox-choices region-choices"{% if not is_paid %} id="region-list" data-disabled-regions="{{ region_form.disabled_regions|json }}"{% endif %} data-special-regions="{{ region_form.special_region_ids|json }}">
   <ul>
     {% for value, text in region_form.regions.field.choices %}
+      {% set special = value in region_form.special_region_ids %}
+      {% set disabled = value in region_form.disabled_regions %}
+      {% set checked = value in region_form.initial.regions %}
       <li data-region="{{ value }}">
-        <label class="region-cb{% if value in region_form.disabled_regions %} disabled{% endif %}">
-        <input type="checkbox" class="restricted"
-          {% if value in region_form.disabled_regions %}disabled
-          {% elif value in region_form.initial.regions %}checked{% endif %}
-          name="regions" value="{{ value }}">{{ text }}</label>
+        <label class="region-cb{{ ' special' if special }}{{ ' disabled' if disabled }}">
+          <input type="checkbox" class="restricted{{ ' special' if special }}"
+            {% if disabled %}disabled{% elif checked %}checked{% endif %}
+            name="regions" value="{{ value }}">
+          {{ text }}
+        </label>
+        <span class="status-label"></span>
       </li>
     {% endfor %}
   </ul>

@@ -179,6 +179,9 @@
 
                     <div class="paid-regions">
                       <h4>{{ _('Available Regions') }}</h4>
+
+                      {% include 'developers/payments/includes/special_regions.html' %}
+
                       <p class="hint note">
                         {% trans status_url='/developers/docs/payments/status' %}
                           Check out the <a href="{{ status_url }}">status page</a> to see what
@@ -233,6 +236,7 @@
       <div id="regions-island">
         <h2>{{ _('Regions and listings') }}</h2>
         <section id="regions" class="island">
+          {% include 'developers/payments/includes/special_regions.html' %}
           {% include 'developers/payments/includes/regions_toggle.html' %}
           {% include 'developers/payments/includes/region_form.html' %}
           <div class="listing-footer">

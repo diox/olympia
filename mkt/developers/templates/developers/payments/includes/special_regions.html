@@ -1,0 +1,46 @@
+<div class="special-regions c">
+  {{ region_form.special_regions }}
+  {{ region_form.special_regions.errors }}
+
+  {% for region in region_form.special_region_objs %}
+    {% set status = addon.geodata.get_status_slug(region) %}
+    <div class="island warning region-msg region region-{{ region.slug }} c"
+         data-region="{{ region.id }}"
+         data-region-status="{{ status }}">
+
+      <div class="region-status{{ ' hidden' if status != 'pending' }}"
+           data-region-status="pending"
+           {# L10n: This app is awaiting approval for this particular region. #}
+           data-l10n="{{ _('awaiting approval') }}">
+        {% trans region=region.name %}
+          Your app is <b>awaiting approval</b> in {{ region }}.
+        {% endtrans %}
+        <a class="button good">{{ _('Remove from {region}').format(region=region.name) }}</a>
+      </div>
+
+      <div class="region-status{{ ' hidden' if status != 'public' }}">
+        {% trans region=region.name %}
+          Your app is <b>approved and listed</b> in {{ region }}.
+        {% endtrans %}
+        <a class="button good">{{ _('Remove from {region}').format(region=region.name) }}</a>
+      </div>
+
+      <div class="region-status{{ ' hidden' if status != 'rejected' }}"
+           data-region-status="rejected"
+           {# L10n: This app is rejected for this particular region. #}
+           data-l10n="{{ _('rejected') }}">
+        {% trans region=region.name %}
+          Your app is <b>rejected</b> in {{ region }}.
+        {% endtrans %}
+      </div>
+
+      <div class="region-status{{ ' hidden' if status != 'unavailable' }}" data-region-status="unavailable">
+        {% trans region=region.name %}
+          Your app is currently <b>unavailable</b> in {{ region }}.
+        {% endtrans %}
+        <a class="button good">{{ _('Submit to {region}').format(region=region.name) }}</a>
+      </div>
+
+    </div>
+  {% endfor %}
+</div>

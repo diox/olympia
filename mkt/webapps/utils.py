@@ -11,6 +11,7 @@ from constants.applications import DEVICE_TYPES
 from market.models import Price
 from users.models import UserProfile
 
+from mkt.constants import regions
 from mkt.purchase.utils import payments_enabled
 from mkt.regions import REGIONS_CHOICES_ID_DICT
 from mkt.regions.api import RegionResource
@@ -254,3 +255,19 @@ def es_app_to_dict(obj, region=None, profile=None, request=None):
         }
 
     return data
+
+
+def get_region(region):
+    """
+    Returns a region class definition given a slug, id, or class definition.
+    """
+
+    if isinstance(region, type) and issubclass(region, regions.REGION):
+        return region
+
+    if str(region).isdigit():
+        # Look up the region by ID.
+        return regions.REGIONS_CHOICES_ID_DICT[int(region)]
+    else:
+        # Look up the region by slug.
+        return regions.REGIONS_DICT[region]

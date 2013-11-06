@@ -217,7 +217,7 @@ class TestRegionForm(amo.tests.WebappTestCase):
                                  'enable_new_regions': True},
                                 **self.kwargs)
 
-        assert form.is_valid()
+        assert form.is_valid(), form.errors
         form.save()
 
         form = forms.RegionForm(data=None, **self.kwargs)
@@ -498,10 +498,11 @@ class TestAdminSettingsForm(TestAdmin):
         assert form.is_valid(), form.errors
         form.save(self.webapp)
 
-        self.webapp = self.webapp.reload()
-
         # Notice the Brazilian region exclusion is now gone.
         excluded_regions.remove(mkt.regions.BR.id)
+        eq_(len(self.webapp.content_ratings_in(region=mkt.regions.DE)), 0)
+        eq_(len(self.webapp.content_ratings_in(region=mkt.regions.BR)), 1)
+
         self.assertSetEqual(
             self.webapp.addonexcludedregion.values_list('region', flat=True),
             excluded_regions)

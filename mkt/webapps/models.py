@@ -46,7 +46,8 @@ import mkt
 from mkt.constants import APP_FEATURES, apps
 from mkt.constants.ratingsdescriptors import RATING_DESCS
 from mkt.search.utils import S
-from mkt.webapps.utils import get_locale_properties, get_supported_locales
+from mkt.webapps.utils import (get_locale_properties, get_region,
+                               get_supported_locales)
 
 
 log = commonware.log.getLogger('z.addons')
@@ -1643,3 +1644,33 @@ class Geodata(amo.models.ModelBase):
         return u'%s (%s): <Webapp %s>' % (self.id,
             'restricted' if self.restricted else 'unrestricted',
             self.addon.id)
+
+    def get_status(self, region):
+        """
+        Returns the status of listing in a given region (e.g., China).
+        """
+        return getattr(self, 'region_%s_status' % get_region(region).slug,
+                       amo.STATUS_PUBLIC)
+
+    def get_status_slug(self, region):
+        return {
+            amo.STATUS_PENDING: 'pending',
+            amo.STATUS_PUBLIC: 'public',
+            amo.STATUS_REJECTED: 'rejected',
+        }.get(self.get_status(region), 'unavailable')
+
+    def set_status(self, region, status):
+        attr = 'region_%s_status' % get_region(region).slug
+        if hasattr(self, attr):
+            return setattr(self, attr, status)
+
+
+# Add a dynamic status field to `Geodata` model for each special region:
+# -  0: STATUS_NULL (Unavailable)
+# -  2: STATUS_PENDING (Pending)
+# -  4: STATUS_PUBLIC (Public)
+# - 12: STATUS_REJECTED (Rejected)
+for region in mkt.regions.SPECIAL_REGIONS:
+    field = models.PositiveIntegerField(help_text=region.name,
+        choices=amo.STATUS_CHOICES.items(), db_index=True, default=0)
+    field.contribute_to_class(Geodata, 'region_%s_status' % region.slug)
