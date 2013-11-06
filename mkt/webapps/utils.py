@@ -11,6 +11,7 @@ from constants.applications import DEVICE_TYPES
 from market.models import Price
 from users.models import UserProfile
 
+from mkt.constants import regions
 from mkt.purchase.utils import payments_enabled
 from mkt.regions import REGIONS_CHOICES_ID_DICT
 from mkt.regions.api import RegionResource

@@ -256,6 +256,47 @@ define('payments', [], function() {
             $free_island.toggle(tab.id == 'free-tab-header');
         });
 
+        // Special cases for special regions.
+        z.doc.on('change', '#regions input[name="special_regions"]', function() {
+            var $this = $(this);
+            $('input.special[value="' + $this.val() + '"]').prop('checked', $this.is(':checked')).trigger('change');
+        }).on('click', '#regions .region-msg .button', function() {
+            var $regionMsg = $(this).closest('.region-msg');
+            // If the user clicked "Submit to China," then check the box.
+            // If the user clicked "Remove from China," then uncheck the box.
+            var enabled = !!$regionMsg.find('[data-region-status="unavailable"]:not(.hidden)').length;
+            $('input.special[value="' + $regionMsg.data('region') + '"]').prop('checked', enabled).trigger('change');
+        }).on('change', '#regions input.special', function() {
+            var $this = $(this);
+            var checked = $this.is(':checked');
+            var $regionMsg = $('.region-msg[data-region="' + $this.val() + '"]');
+            var status = $regionMsg.data('region-status');
+
+            $('input[name="special_regions"][value="' + $this.val() + '"]').prop('checked', checked);
+            if (checked) {
+                if (status == 'public') {
+                    $regionMsg.find('[data-region-status]:not([data-region-status="public"])').addClass('hidden');
+                    $regionMsg.find('[data-region-status="public"]').removeClass('hidden');
+                } else {
+                    $regionMsg.find('[data-region-status]:not([data-region-status="pending"])').addClass('hidden');
+                    $regionMsg.find('[data-region-status="pending"]').removeClass('hidden');
+                }
+            } else {
+                // If the user unchecked it, revert the message to its previous status.
+                $regionMsg.find('.region-status').addClass('hidden');
+                $regionMsg.find('.region-status[data-region-status="' + status + '"]').removeClass('hidden');
+            }
+
+            var label = $('.region-status:not(.hidden)').data('l10n');
+            var $statusLabel = $this.closest('li').find('.status-label');
+            $statusLabel.text(label);
+            if (!checked) {
+                $statusLabel.text($statusLabel.data('l10n-default'));
+            }
+        });
+        // Initialize.
+        z.doc.find('#regions input.special').trigger('change');
+
         if ($('#paid-regions-island').length) {
             // Paid apps for the time being must be restricted.
             var $restricted = $('input[name=restricted]');
@@ -273,17 +314,19 @@ define('payments', [], function() {
             $('.restricted').removeClass('hidden');
         } else {
             // Free apps can toggle between restricted and not.
-            z.doc.on('change', '#regions input[name=restricted]:checked', function() {
+            z.doc.on('change', '#regions input[name=restricted]:checked', function(e, init) {
                 // Coerce string ('0' or '1') to boolean ('true' or 'false').
                 var restricted = !!+$(this).val();
                 $('.restricted').toggle(restricted);
                 if (!restricted) {
-                    $('input.restricted:not([disabled])').prop('checked', true);
+                    $('input.restricted:not([disabled]):not(.special)').prop('checked', true);
                     $('input[name="enable_new_regions"]').prop('checked', true);
                 }
-                window.location.hash = 'regions-island';
+                if (!init) {
+                    window.location.hash = 'regions-island';
+                }
             });
-            $('#regions input[name=restricted]:checked').trigger('change');
+            $('#regions input[name=restricted]:checked').trigger('change', [true]);
         }
 
         // Only update if we can edit. If the user can't edit all fields will be disabled.
