@@ -77,8 +77,10 @@ def toggle_game(app):
                              u'(%s).' % (app, region.id))
 
 
-def toggle_app_for_special_regions(app, enabled_regions=None):
+def toggle_app_for_special_regions(request, app, enabled_regions=None):
     """Toggle for special regions (e.g., China)."""
+    if not waffle.flag_is_active(request, 'special-regions'):
+        return
     for region in mkt.regions.SPECIAL_REGIONS:
         status = app.geodata.get_status(region)
 
@@ -731,12 +733,29 @@ class RegionForm(forms.Form):
         return disabled_regions
 
     @property
+    def regions_by_id(self):
+        return mkt.regions.REGIONS_CHOICES_ID_DICT
+
+    @property
     def special_region_objs(self):
         return mkt.regions.SPECIAL_REGIONS
 
     @property
     def special_region_ids(self):
         return mkt.regions.SPECIAL_REGION_IDS
+
+    @property
+    def special_region_statuses(self):
+        """Returns the null/pending/public status for each region."""
+        statuses = {}
+        for region in self.special_region_objs:
+           statuses[region.id] = self.product.geodata.get_status_slug(region)
+        return statuses
+
+    @property
+    def special_region_messages(self):
+        """Returns the L10n messages for each region's status."""
+        return self.product.geodata.get_status_messages()
 
     def is_toggling(self):
         if not self.request or not hasattr(self.request, 'POST'):
@@ -812,7 +831,7 @@ class RegionForm(forms.Form):
         toggle_game(self.product)
 
         # Toggle region exclusions/statuses for special regions (e.g., China).
-        toggle_app_for_special_regions(self.product,
+        toggle_app_for_special_regions(self.request, self.product,
                                        self.cleaned_data['special_regions'])
 
         if self.cleaned_data['enable_new_regions']:
@@ -878,7 +897,7 @@ class CategoryForm(happyforms.Form):
         toggle_game(self.product)
 
         # Toggle app for special regions (e.g., China).
-        toggle_app_for_special_regions(self.product)
+        toggle_app_for_special_regions(self.request, self.product)
 
 
 class DevAgreementForm(happyforms.Form):

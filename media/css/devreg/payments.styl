@@ -370,15 +370,9 @@
     display: none;
 }
 
-.island.warning:not(.region-msg) {
+.island.warning {
     background: orangered;
     color: white;
-}
-
-.region-msg.island.warning {
-    background-color: $notice-yellow;
-    border-color: darken(gold, 25%);
-    color: #484848;
 }
 
 .region-msg.island {
@@ -398,7 +392,7 @@
 
 .status-label {
     color: #800;
-    font-size: 11px;
+    font-size: 10px;
     padding-left: 2px;
 
     &:not(:empty) {
@@ -411,9 +405,8 @@
     }
 }
 
-
 .special-regions + ul {
-    padding-top: 13px;
+    padding-top: 8px;
 }
 
 .overlay > .show-agreement {
@@ -532,7 +525,7 @@ body > label {
     }
     // More room to breathe for region checkboxes.
     [data-region] input[type=checkbox] {
-        margin-right: 6px;
+        margin-right: 4px;
     }
 }
 
@@ -549,7 +542,8 @@ body > label {
         header,
         .region-choices,
         .disabled-regions,
-        .other-regions {
+        .other-regions,
+        .special-regions-unrestricted {
             margin: 10px 22px 5px;
         }
         header {
@@ -579,6 +573,7 @@ body > label {
     vertical-align: top;
 }
 
+// Hidden checkboxes for special regions.
 .special-regions ul {
     display: none;
 }
@@ -597,12 +592,15 @@ body > label {
 
 .region {
     background-repeat: no-repeat;
-    background-size: 20px auto;
-    margin-top: 6px;
-    min-height: 20px;
+    background-size: 14px auto;
+    min-height: 14px;
     overflow: visible;
-    padding: 2px 0 0 28px;
+    padding: 1px 0 0 20px;
     text-overflow: normal;
+}
+
+label .region {
+    background-position: 0 50%;
 }
 
 .region-worldwide {

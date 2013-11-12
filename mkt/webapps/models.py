@@ -1773,6 +1773,11 @@ class Geodata(amo.models.ModelBase):
         return getattr(self, 'region_%s_status' % parse_region(region).slug,
                        amo.STATUS_PUBLIC)
 
+    def set_status(self, region, status):
+        attr = 'region_%s_status' % parse_region(region).slug
+        if hasattr(self, attr):
+            return setattr(self, attr, status)
+
     def get_status_slug(self, region):
         return {
             amo.STATUS_PENDING: 'pending',
@@ -1780,10 +1785,17 @@ class Geodata(amo.models.ModelBase):
             amo.STATUS_REJECTED: 'rejected',
         }.get(self.get_status(region), 'unavailable')
 
-    def set_status(self, region, status):
-        attr = 'region_%s_status' % parse_region(region).slug
-        if hasattr(self, attr):
-            return setattr(self, attr, status)
+    @classmethod
+    def get_status_messages(cls):
+        return {
+            # L10n: This app is awaiting approval for a particular region.
+            'pending': _('awaiting approval'),
+            # L10n: This app is rejected for a particular region.
+            'rejected': _('rejected'),
+            # L10n: This app requires additional review for a particular
+            # region.
+            'unavailable': _('requires additional review')
+        }
 
 
 # Add a dynamic status field to `Geodata` model for each special region:
