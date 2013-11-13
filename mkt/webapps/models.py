@@ -1773,10 +1773,13 @@ class Geodata(amo.models.ModelBase):
         return getattr(self, 'region_%s_status' % parse_region(region).slug,
                        amo.STATUS_PUBLIC)
 
-    def set_status(self, region, status):
+    def set_status(self, region, status, save=False):
         attr = 'region_%s_status' % parse_region(region).slug
         if hasattr(self, attr):
-            return setattr(self, attr, status)
+            value = setattr(self, attr, status)
+            if save:
+                self.save()
+            return value
 
     def get_status_slug(self, region):
         return {
@@ -1788,12 +1791,11 @@ class Geodata(amo.models.ModelBase):
     @classmethod
     def get_status_messages(cls):
         return {
-            # L10n: This app is awaiting approval for a particular region.
+            # L10n: An app is awaiting approval for a particular region.
             'pending': _('awaiting approval'),
-            # L10n: This app is rejected for a particular region.
+            # L10n: An app is rejected for a particular region.
             'rejected': _('rejected'),
-            # L10n: This app requires additional review for a particular
-            # region.
+            # L10n: An app requires additional review for a particular region.
             'unavailable': _('requires additional review')
         }
 

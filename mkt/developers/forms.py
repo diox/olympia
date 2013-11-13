@@ -54,6 +54,11 @@ from . import tasks
 log = commonware.log.getLogger('mkt.developers')
 
 
+region_error = lambda region: forms.ValidationError(
+    _('You cannot select {region}.').format(
+    region=unicode(parse_region(region).name)))
+
+
 def toggle_game(app):
     """
     Exclude unrated games from regions requiring content ratings.
@@ -81,20 +86,30 @@ def toggle_app_for_special_regions(request, app, enabled_regions=None):
     """Toggle for special regions (e.g., China)."""
     if not waffle.flag_is_active(request, 'special-regions'):
         return
+
+    # We omit `amo.STATUS_REJECTED` because we shouldn't be altering that
+    # status. If a reviewer rejects that app in China, that's permanent!
+    valid_statuses = (amo.STATUS_NULL, amo.STATUS_PENDING, amo.STATUS_PUBLIC)
+
     for region in mkt.regions.SPECIAL_REGIONS:
         status = app.geodata.get_status(region)
 
-        if enabled_regions is not None:
-            if region in enabled_regions:
+        if (status in valid_statuses and
+            enabled_regions is not None):
+            if region.id in enabled_regions:
                 # If it's not already enabled, mark as pending.
                 if status != amo.STATUS_PUBLIC:
                     # Developer requested for it to be in China.
                     status = amo.STATUS_PENDING
                     app.geodata.set_status(region, status)
+                    log.info(u'[Webapp:%s] App marked as pending (special) '
+                             u'region (%s).' % (app, region.slug))
             else:
                 # Developer cancelled request for approval.
                 status = amo.STATUS_NULL
                 app.geodata.set_status(region, status)
+                log.info(u'[Webapp:%s] App marked as null (special) '
+                         u'region (%s).' % (app, region.slug))
 
         if status == amo.STATUS_PUBLIC:
             # Reviewer approved for it to be in China.
@@ -103,7 +118,7 @@ def toggle_app_for_special_regions(request, app, enabled_regions=None):
                 aer.delete()
                 log.info(u'[Webapp:%s] App included in new (special) '
                          u'region (%s).' % (app, region.slug))
-        elif status != amo.STATUS_NULL:
+        else:
             # Developer requested for it to be in China.
             aer, created = app.addonexcludedregion.get_or_create(
                 region=region.id)
@@ -704,7 +719,8 @@ class RegionForm(forms.Form):
         self.regions_before = self.product.get_region_ids(worldwide=True)
 
         self.initial = {
-            'regions': self.regions_before,
+            'regions': sorted(set(self.regions_before) -
+                              set(self.special_region_ids)),
             'restricted': int(self.product.geodata.restricted),
             'enable_new_regions': self.product.enable_new_regions,
         }
@@ -726,9 +742,8 @@ class RegionForm(forms.Form):
         # the developer to opt in again.
         for region in self.regions_before:
             status = self.product.geodata.get_status(region)
-            if (status == amo.STATUS_REJECTED and
-                region not in self.disabled_regions):
-                disabled_regions.append(region)
+            if status == amo.STATUS_REJECTED:
+                disabled_regions.add(region)
 
         return disabled_regions
 
@@ -767,41 +782,41 @@ class RegionForm(forms.Form):
         return (self.product.premium_type in amo.ADDON_PREMIUMS
                 or self.product.premium_type == amo.ADDON_FREE_INAPP)
 
-    def clean(self):
-        data = self.cleaned_data
+    def clean_regions(self):
+        regions = self.cleaned_data['regions']
         if not self.is_toggling():
-            if not data.get('regions'):
+            if not regions:
                 raise forms.ValidationError(
                     _('You must select at least one region.'))
 
-            region_error = lambda region: forms.ValidationError(
-                _('You cannot select {region}.').format(
-                region=parse_region(region).name))
-
             # Handle disabled regions.
-            for region in data['regions']:
-                status = self.product.geodata.get_status(region)
+            for region in regions:
                 if region in self.disabled_regions:
-                    return region_error(region)
+                    raise region_error(region)
+        return regions
 
+    def clean_special_regions(self):
+        special_regions = self.cleaned_data['special_regions']
+        if not self.is_toggling():
             # Handle special regions.
-            for region in data['special_regions']:
+            for region in special_regions:
                 status = self.product.geodata.get_status(region)
-                if status != amo.STATUS_PUBLIC:
-                    return region_error(region)
-
-        return data
+                if status == amo.STATUS_REJECTED:
+                    raise region_error(region)
+        return special_regions
 
     def save(self):
         # Don't save regions if we are toggling.
         if self.is_toggling():
             return
 
+        regions = [int(x) for x in self.cleaned_data['regions']]
+        special_regions = [int(x) for x in self.cleaned_data['special_regions']]
         restricted = int(self.cleaned_data['restricted'] or 0)
 
         if restricted:
             before = set(self.regions_before)
-            after = set(map(int, self.cleaned_data['regions']))
+            after = set(regions)
 
             log.info(u'[Webapp:%s] App mark as restricted.' % self.product)
 
@@ -832,7 +847,7 @@ class RegionForm(forms.Form):
 
         # Toggle region exclusions/statuses for special regions (e.g., China).
         toggle_app_for_special_regions(self.request, self.product,
-                                       self.cleaned_data['special_regions'])
+                                       special_regions)
 
         if self.cleaned_data['enable_new_regions']:
             self.product.update(enable_new_regions=True)

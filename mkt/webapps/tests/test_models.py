@@ -1598,7 +1598,7 @@ class TestGeodata(amo.tests.WebappTestCase):
     def test_app_geodata(self):
         assert isinstance(Webapp(id=337141).geodata, Geodata)
 
-    def test___unicode__(self):
+    def test_unicode(self):
         eq_(unicode(self.geo),
             u'%s (unrestricted): <Webapp 337141>' % self.geo.id)
         self.geo.update(restricted=True)
@@ -1610,5 +1610,15 @@ class TestGeodata(amo.tests.WebappTestCase):
         eq_(self.geo.region_cn_status, amo.STATUS_NULL)
 
     def test_set_status(self):
-        self.geo.set_status(mkt.regions.CN, amo.STATUS_PUBLIC)
-        eq_(self.geo.region_cn_status, amo.STATUS_PUBLIC)
+        status = amo.STATUS_PUBLIC
+
+        # Called with `save=False`.
+        self.geo.set_status(mkt.regions.CN, status)
+        eq_(self.geo.region_cn_status, status)
+        eq_(self.geo.reload().region_cn_status, amo.STATUS_NULL,
+            '`set_status(..., save=False)` should not save the value')
+
+        # Called with `save=True`.
+        self.geo.set_status(mkt.regions.CN, status, save=True)
+        eq_(self.geo.region_cn_status, status)
+        eq_(self.geo.reload().region_cn_status, status)
