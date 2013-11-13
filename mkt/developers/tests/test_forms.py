@@ -282,6 +282,15 @@ class TestRegionForm(amo.tests.WebappTestCase):
             {'regions': [mkt.regions.WORLDWIDE.id]}, **self.kwargs)
         assert form.is_valid(), form.errors
 
+    def test_china_initially_excluded_if_null(self):
+        pass
+
+    def test_china_excluded_if_pending(self):
+        pass
+
+    def test_china_included_if_approved(self):
+        pass
+
 
 class TestNewManifestForm(amo.tests.TestCase):
 

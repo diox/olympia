@@ -688,7 +688,7 @@ class RegionForm(forms.Form):
     enable_new_regions = forms.BooleanField(required=False,
         label=_lazy(u'Enable new regions'))
     restricted = forms.TypedChoiceField(required=False,
-        choices=[(0, _lazy('Make my app available everywhere')),
+        choices=[(0, _lazy('Make my app available in most regions')),
                  (1, _lazy('Choose where my app is made available'))],
         widget=forms.RadioSelect(attrs={'class': 'choices'}),
         initial=0,

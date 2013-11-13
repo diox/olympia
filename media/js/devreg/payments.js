@@ -310,7 +310,11 @@ define('payments', [], function() {
             $specials.insertAfter($('input[name="restricted"][value="0"]').closest('label'));
 
             // Clone the "Learn why some regions are restricted" choice.
-            $('.disabled-regions').clone().insertAfter($('.special-regions-unrestricted')).addClass('unrestricted');
+            var $unrestrictedList = $('ul.special-regions-unrestricted');
+            $('header.unrestricted').clone().removeClass('hidden').insertBefore($unrestrictedList);
+            // Remove the old one.
+            $('header.unrestricted.hidden').remove();
+            $('.disabled-regions').clone().insertAfter($unrestrictedList).addClass('unrestricted');
 
             // Free apps can toggle between restricted and not.
             z.doc.on('change', '#regions input[name=restricted]:checked', function(e, init) {

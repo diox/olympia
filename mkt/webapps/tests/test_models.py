@@ -1597,3 +1597,18 @@ class TestGeodata(amo.tests.WebappTestCase):
 
     def test_app_geodata(self):
         assert isinstance(Webapp(id=337141).geodata, Geodata)
+
+    def test___unicode__(self):
+        eq_(unicode(self.geo),
+            u'%s (unrestricted): <Webapp 337141>' % self.geo.id)
+        self.geo.update(restricted=True)
+        eq_(unicode(self.geo),
+            u'%s (restricted): <Webapp 337141>' % self.geo.id)
+
+    def test_get_status(self):
+        eq_(self.geo.get_status(mkt.regions.CN), amo.STATUS_NULL)
+        eq_(self.geo.region_cn_status, amo.STATUS_NULL)
+
+    def test_set_status(self):
+        self.geo.set_status(mkt.regions.CN, amo.STATUS_PUBLIC)
+        eq_(self.geo.region_cn_status, amo.STATUS_PUBLIC)

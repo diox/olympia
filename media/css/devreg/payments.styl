@@ -542,9 +542,12 @@ body > label {
         header,
         .region-choices,
         .disabled-regions,
-        .other-regions,
-        .special-regions-unrestricted {
+        .other-regions {
             margin: 10px 22px 5px;
+        }
+        .special-regions-unrestricted {
+            // Offset for the 2px on the `<ul>`.
+            margin: 10px 20px 5px;
         }
         header {
             margin-top: 0;
@@ -556,6 +559,12 @@ body > label {
             margin-top: 15px;
             padding-top: 15px;
         }
+    }
+
+    .special-regions-unrestricted h4 {
+        color: $medium-gray;
+        font-size: 12px;
+        font-weight: 400;
     }
 }
 
