@@ -33,7 +33,7 @@ from amo.decorators import skip_cache
 from amo.helpers import absolutify
 from amo.storage_utils import copy_stored_file
 from amo.urlresolvers import reverse
-from amo.utils import JSONEncoder, memoize, memoize_key, smart_path
+from amo.utils import JSONEncoder, memoize, memoize_key, smart_path, urlparams
 from constants.applications import DEVICE_TYPES
 from files.models import File, nfd_str, Platform
 from files.utils import parse_addon, WebAppParser
@@ -117,6 +117,21 @@ class WebappManager(amo.models.ManagerBase):
         # ** Unreviewed -- LITE
         # ** Rejected   -- REJECTED
         return self.filter(status=amo.WEBAPPS_UNREVIEWED_STATUS)
+
+    @skip_cache
+    def pending_in_region(self, region):
+        """
+        Apps that have been approved by reviewers but unapproved by
+        reviewers in special regions (e.g., China).
+
+        """
+        region = parse_region(region)
+        return self.filter(**{
+            'status': amo.STATUS_PUBLIC,
+            'disabled_by_user': False,
+            'escalationqueue__isnull': True,
+            '_geodata__region_%s_status' % region.slug: amo.STATUS_PENDING,
+        })
 
     def rated(self):
         """IARC."""
@@ -230,16 +245,20 @@ class Webapp(Addon):
             kwargs['app_slug'] = self.app_slug
         return reverse('api_dispatch_%s' % (action or 'detail'), kwargs=kwargs)
 
-    def get_url_path(self, more=False, add_prefix=True):
+    def get_url_path(self, more=False, add_prefix=True, src=None):
         # We won't have to do this when Marketplace absorbs all apps views,
         # but for now pretend you didn't see this.
         try:
-            return reverse('detail', args=[self.app_slug],
+            url_ = reverse('detail', args=[self.app_slug],
                            add_prefix=add_prefix)
         except NoReverseMatch:
             # Fall back to old details page until the views get ported.
             return super(Webapp, self).get_url_path(more=more,
                                                     add_prefix=add_prefix)
+        else:
+            if src is not None:
+                return urlparams(url_, src=src)
+            return url_
 
     def get_detail_url(self, action=None):
         """Reverse URLs for 'detail', 'details.record', etc."""
@@ -1820,18 +1839,27 @@ class Geodata(amo.models.ModelBase):
 
     def get_status(self, region):
         """
-        Returns the status of listing in a given region (e.g., China).
+        Return the status of listing in a given region (e.g., China).
         """
         return getattr(self, 'region_%s_status' % parse_region(region).slug,
                        amo.STATUS_PUBLIC)
 
     def set_status(self, region, status, save=False):
+        """Return a tuple of `(value, saved)`."""
+
         attr = 'region_%s_status' % parse_region(region).slug
         if hasattr(self, attr):
             value = setattr(self, attr, status)
-            if save:
+
+            if save is None:
+                return value, False
+
+            # Save only if the value is different.
+            if self.get_status(region) != value:
                 self.save()
-            return value
+                return value, True
+
+        return None, False
 
     def get_status_slug(self, region):
         return {
@@ -1861,3 +1889,8 @@ for region in mkt.regions.SPECIAL_REGIONS:
     field = models.PositiveIntegerField(help_text=region.name,
         choices=amo.STATUS_CHOICES.items(), db_index=True, default=0)
     field.contribute_to_class(Geodata, 'region_%s_status' % region.slug)
+
+    # TODO: Add nomination date for each region.
+    # field = models.PositiveIntegerField(help_text=region.name,
+    #     choices=amo.STATUS_CHOICES.items(), db_index=True, default=0)
+    # field.contribute_to_class(Geodata, 'region_%s_nomination' % region.slug)

@@ -63,3 +63,30 @@
     </form>
   </div>
 {% endmacro %}
+
+{% macro app_flags(app) %}
+  {% if app.is_packaged %}
+    <div class="sprite-reviewer sprite-reviewer-packaged-app" title="{{ _('Packaged App') }}"></div>
+    {% if app.latest_version.is_privileged %}
+      <div class="sprite-reviewer sprite-reviewer-privileged-app" title="{{ _('Privileged App') }}"></div>
+    {% endif %}
+  {% endif %}
+  {% if app.status == amo.STATUS_BLOCKED %}
+    <div class="sprite-reviewer sprite-reviewer-blocked" title="{{ _('Blocklisted App') }}"></div>
+  {% endif %}
+
+  {% if app.premium_type == amo.ADDON_PREMIUM_INAPP %}
+    <div class="sprite-reviewer sprite-reviewer-premium inapp" title="{{ _('Premium with In-App') }}"></div>
+  {% elif app.premium_type == amo.ADDON_FREE_INAPP %}
+    <div class="sprite-reviewer sprite-reviewer-premium free inapp" title="{{ _('Free with In-App') }}"></div>
+  {% elif app.is_premium() %}
+    <div class="sprite-reviewer sprite-reviewer-premium" title="{{ _('Premium App') }}"></div>
+  {% endif %}
+
+  {% if app.current_version.has_info_request %}
+    <div class="sprite-reviewer sprite-reviewer-info" title="{{ _('More Information Requested') }}"></div>
+  {% endif %}
+  {% if app.current_version.has_editor_comment %}
+    <div class="sprite-reviewer sprite-reviewer-editor" title="{{ _('Contains Editor Comment') }}"></div>
+  {% endif %}
+{% endmacro %}

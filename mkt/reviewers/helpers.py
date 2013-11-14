@@ -41,6 +41,8 @@ def reviewers_breadcrumbs(context, queue=None, items=None):
                   'moderated': _('Moderated Reviews'),
                   'reviewing': _('Reviewing'),
 
+                  'region': _('Regional Queues'),
+
                   'pending_themes': _('Pending Themes'),
                   'flagged_themes': _('Flagged Themes'),
                   'rereview_themes': _('Update Themes')}
