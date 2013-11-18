@@ -464,6 +464,31 @@ class Webapp(Addon):
     def is_rated(self):
         return self.content_ratings.exists()
 
+    @property
+    def is_offline(self):
+        """
+        Returns a boolean of whether this is an app that degrades
+        gracefully offline.
+        """
+
+        if self.is_packaged:
+            return True
+
+        is_appcached = ''
+
+        key = 'webapp:{0}:appcached'.format(self.pk)
+        data = cache.get(key)
+        if data is not None:
+            is_appcached = data
+        else:
+            version = self.current_version
+            if version and version.all_files:
+                mf = self.get_manifest_json(version.all_files[0])
+                is_appcached = '1' if mf and mf.get('appcache_path') else ''
+                cache.set(key, is_appcached, 60 * 60)  # 1 hour
+
+        return bool(is_appcached)
+
     def has_payment_account(self):
         """App doesn't have a payment account set up yet."""
         try:
@@ -1369,6 +1394,7 @@ class WebappIndexer(MappingType, Indexable):
                     },
                     'is_disabled': {'type': 'boolean'},
                     'is_escalated': {'type': 'boolean'},
+                    'is_offline': {'type': 'boolean'},
                     'last_updated': {'format': 'dateOptionalTime',
                                      'type': 'date'},
                     'latest_version': {
@@ -1510,6 +1536,7 @@ class WebappIndexer(MappingType, Indexable):
                       for icon_size in (16, 48, 64, 128)]
         d['interactive_elements'] = obj.get_interactives(es=True)
         d['is_escalated'] = is_escalated
+        d['is_offline'] = obj.is_offline
         if latest_version:
             d['latest_version'] = {
                 'status': status,
@@ -1792,7 +1819,8 @@ class ContentRating(amo.models.ModelBase):
 
 def update_status_content_ratings(sender, instance, **kw):
     # Flips the app's status from NULL if it has everything else together.
-    if instance.addon.is_incomplete() and instance.addon.is_fully_complete()[0]:
+    if (instance.addon.is_incomplete() and
+        instance.addon.is_fully_complete()[0]):
         instance.addon.update(status=amo.STATUS_PENDING)
 
 

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core import mail
+from django.core.cache import cache
 from django.core.files.storage import default_storage as storage
 from django.db.models.signals import post_delete, post_save
 from django.test.utils import override_settings
@@ -714,6 +715,62 @@ class TestWebapp(amo.tests.TestCase):
         assert reasons['details']
         assert reasons['content_ratings']
         assert reasons['payments']
+
+    @mock.patch('mkt.webapps.models.cache.get')
+    def test_is_offline_packaged(self, mock_get):
+        mock_get.return_value = ''
+        eq_(Webapp(is_packaged=True).is_offline, True)
+        eq_(Webapp(is_packaged=False).is_offline, False)
+
+    def test_is_offline_appcache(self):
+        app = app_factory()
+        key = 'webapp:%s:appcached' % app.pk
+        manifest = {
+            'name': 'Swag',
+            'appcache_path': '/manifest.appcache'
+        }
+
+        # If there's an appcache_path defined, this is an offline-capable app.
+        eq_(cache.get(key), None)
+        am = AppManifest.objects.create(version=app.current_version,
+                                        manifest=json.dumps(manifest))
+
+        eq_(app.is_offline, True)
+        eq_(cache.get(key), '1')
+
+        # Clear cache.
+        cache.delete(key)
+
+        # If there's no appcache_path defined, ain't an offline-capable app.
+        del manifest['appcache_path']
+        am.update(manifest=json.dumps(manifest))
+        eq_(app.reload().is_offline, False)
+
+    @mock.patch('mkt.webapps.models.cache.set')
+    def test_is_offline_set_cache(self, mock_set):
+        app = app_factory()
+        key = 'webapp:%s:appcached' % app.pk
+
+        eq_(cache.get(key), None)
+        eq_(app.is_offline, False)
+
+        # Should get cached.
+        mock_set.assert_called_with(key, '', 60 * 60)
+
+    def test_is_offline_get_cache(self):
+        app = app_factory()
+        key = 'webapp:%s:appcached' % app.pk
+
+        # Ensure that calling `is_offline` gets cached as ''.
+        eq_(cache.get(key), None)
+        eq_(app.is_offline, False)
+        eq_(cache.get(key), '')
+
+        # Ensure that caching `webapp:{app.pk}:appcached` as '1' correctly
+        # makes reports truthy on the next time `is_offline` call.
+        cache.set(key, '1', 60 * 60)
+
+        eq_(app.is_offline, True)
 
 
 class DeletedAppTests(amo.tests.ESTestCase):
