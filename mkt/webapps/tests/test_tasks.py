@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import stat
+from contextlib import contextmanager
 
 from django.conf import settings
 from django.core.files.storage import default_storage as storage
@@ -93,7 +94,6 @@ class TestUpdateManifest(amo.tests.TestCase):
     fixtures = ('base/platforms', 'base/users')
 
     def setUp(self):
-
         UserProfile.objects.get_or_create(id=settings.TASK_USER_ID)
 
         # Not using app factory since it creates translations with an invalid
@@ -113,10 +113,7 @@ class TestUpdateManifest(amo.tests.TestCase):
         self.addon.manifest_url = 'http://nowhere.allizom.org/manifest.webapp'
         self.addon.save()
 
-        AddonUser.objects.create(addon=self.addon,
-                                 user=UserProfile.objects.get(pk=999))
-
-        ActivityLog.objects.all().delete()
+        self.addon.addonuser_set.create(user_id=999)
 
         with storage.open(self.file.file_path, 'w') as fh:
             fh.write(json.dumps(original))
@@ -126,26 +123,16 @@ class TestUpdateManifest(amo.tests.TestCase):
         self._hash = nhash
         self.new = new.copy()
 
-        urlopen_patch = mock.patch('urllib2.urlopen')
-        self.urlopen_mock = urlopen_patch.start()
-        self.addCleanup(urlopen_patch.stop)
+        self.content_type = 'application/x-web-app-manifest+json'
 
-        self.response_mock = mock.Mock()
-        self.response_mock.getcode.return_value = 200
-        self.response_mock.read.return_value = self._data()
-        self.response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = self.response_mock
+        patcher = mock.patch('mkt.developers.tasks.requests.get')
+        self.requests_mock = patcher.start()
+        self.addCleanup(patcher.stop)
 
-        p = mock.patch('mkt.webapps.tasks.validator')
-        self.validator = p.start()
+        patcher2 = mock.patch('mkt.webapps.tasks.validator')
+        self.validator = patcher2.start()
+        self.addCleanup(patcher2.stop)
         self.validator.return_value = {}
-        self.patches = [p]
-
-    def tearDown(self):
-        super(TestUpdateManifest, self).tearDown()
-        for p in self.patches:
-            p.stop()
 
     @mock.patch('mkt.webapps.tasks._get_content_hash')
     def _run(self, _get_content_hash, **kw):
@@ -156,9 +143,19 @@ class TestUpdateManifest(amo.tests.TestCase):
     def _data(self):
         return json.dumps(self.new)
 
+    @contextmanager
+    def patch_requests(self):
+        response_mock = mock.Mock(status_code=200)
+        response_mock.iter_content.return_value = mock.Mock(next=self._data)
+        response_mock.headers = {'content-type': self.content_type}
+        yield response_mock
+        self.requests_mock.return_value = response_mock
+
     @mock.patch('mkt.webapps.models.Webapp.get_manifest_json')
     @mock.patch('mkt.webapps.models.copy_stored_file')
     def test_new_version_not_created(self, _copy_stored_file, _manifest_json):
+        yield self.patch_requests()
+
         # Test that update_manifest doesn't create multiple versions/files.
         eq_(self.addon.versions.count(), 1)
         old_version = self.addon.current_version
@@ -167,23 +164,24 @@ class TestUpdateManifest(amo.tests.TestCase):
 
         app = Webapp.objects.get(pk=self.addon.pk)
         version = app.current_version
-        file = app.get_latest_file()
+        file_ = app.get_latest_file()
 
         # Test that our new version looks good.
         eq_(app.versions.count(), 1)
-        assert version == old_version, 'Version created'
-        assert file == old_file, 'File created'
+        eq_(version, old_version, 'Version created')
+        eq_(file_, old_file, 'File created')
 
         path = FileUpload.objects.all()[0].path
         _copy_stored_file.assert_called_with(path,
                                              os.path.join(version.path_prefix,
-                                                          file.filename))
-        _manifest_json.assert_called_with(file)
+                                                          file_.filename))
+        _manifest_json.assert_called_with(file_)
 
     def test_version_updated(self):
         self._run()
         self.new['version'] = '1.1'
-        self.response_mock.read.return_value = self._data()
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(next=self._data)
         self._hash = 'foo'
         self._run()
 
@@ -196,41 +194,48 @@ class TestUpdateManifest(amo.tests.TestCase):
         eq_(ActivityLog.objects.for_apps(self.addon).count(), 0)
 
     def test_log(self):
+        yield self.patch_requests()
         self._run()
         eq_(ActivityLog.objects.for_apps(self.addon).count(), 1)
 
     @mock.patch('mkt.webapps.tasks._update_manifest')
     def test_ignore_not_webapp(self, mock_):
+        yield self.patch_requests()
         self.addon.update(type=amo.ADDON_EXTENSION)
         call_command('process_addons', task='update_manifests')
         assert not mock_.called
 
     @mock.patch('mkt.webapps.tasks._update_manifest')
     def test_pending(self, mock_):
+        yield self.patch_requests()
         self.addon.update(status=amo.STATUS_PENDING)
         call_command('process_addons', task='update_manifests')
         assert mock_.called
 
     @mock.patch('mkt.webapps.tasks._update_manifest')
     def test_waiting(self, mock_):
+        yield self.patch_requests()
         self.addon.update(status=amo.STATUS_PUBLIC_WAITING)
         call_command('process_addons', task='update_manifests')
         assert mock_.called
 
     @mock.patch('mkt.webapps.tasks._update_manifest')
     def test_ignore_disabled(self, mock_):
+        yield self.patch_requests()
         self.addon.update(status=amo.STATUS_DISABLED)
         call_command('process_addons', task='update_manifests')
         assert not mock_.called
 
     @mock.patch('mkt.webapps.tasks._update_manifest')
     def test_ignore_packaged(self, mock_):
+        yield self.patch_requests()
         self.addon.update(is_packaged=True)
         call_command('process_addons', task='update_manifests')
         assert not mock_.called
 
     @mock.patch('mkt.webapps.tasks._update_manifest')
     def test_get_webapp(self, mock_):
+        yield self.patch_requests()
         eq_(self.addon.status, amo.STATUS_PUBLIC)
         call_command('process_addons', task='update_manifests')
         assert mock_.called
@@ -321,6 +326,8 @@ class TestUpdateManifest(amo.tests.TestCase):
             upload.validation = json.dumps(validation_results)
             upload.save()
 
+        yield self.patch_requests()
+
         validation_results = {
             'errors': 1,
             'messages': [{
@@ -359,12 +366,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         _manifest.return_value = original
         # Mock new manifest with name change.
         self.new['name'] = 'Mozilla Ball Ultimate Edition'
-        response_mock = mock.Mock()
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.getcode.return_value = 200
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         eq_(RereviewQueue.objects.count(), 0)
         self._run()
@@ -378,12 +383,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         _manifest.return_value = original
         # Mock new manifest with name change.
         self.new['locales'] = {'es': {'name': 'eso'}}
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         eq_(RereviewQueue.objects.count(), 0)
         self._run()
@@ -401,12 +404,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         _manifest.return_value = original
         # Mock new manifest with name change.
         self.new['locales'] = {'de': {'name': 'Bippity Bop'}}
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         eq_(RereviewQueue.objects.count(), 0)
         self._run()
@@ -426,12 +427,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         self.new['name'] = u'Mozilla Balón'
         self.new['default_locale'] = 'es'
         self.new['locales'] = {'en-US': {'name': 'MozillaBall'}}
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         eq_(RereviewQueue.objects.count(), 0)
         self._run()
@@ -453,13 +452,12 @@ class TestUpdateManifest(amo.tests.TestCase):
         # Mock new manifest with name change.
         # Note: Not using `del` b/c copy doesn't copy nested structures.
         self.new['locales'] = {
-            'fr': {'description': 'Testing name-less locale'}}
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+            'fr': {'description': 'Testing name-less locale'}
+        }
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         eq_(RereviewQueue.objects.count(), 0)
         self._run()
@@ -473,12 +471,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         _manifest.return_value = original
         # Mock new manifest with name change.
         self.new['name'] = 'Mozilla Ball Ultimate Edition'
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         # We're setting the hash to the same value.
         self.file.update(hash=nhash)
@@ -498,12 +494,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         _manifest.return_value = original
         # Mock new manifest with name change.
         self.new['locales'].update({'es': {'name': u'Mozilla Balón'}})
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         self._run()
         ver = self.version.reload()
@@ -515,12 +509,10 @@ class TestUpdateManifest(amo.tests.TestCase):
         _manifest.return_value = original
         # Mock new manifest with developer name change.
         self.new['developer']['name'] = 'Allizom'
-        response_mock = mock.Mock()
-        response_mock.getcode.return_value = 200
-        response_mock.read.return_value = json.dumps(self.new)
-        response_mock.headers = {
-            'Content-Type': 'application/x-web-app-manifest+json'}
-        self.urlopen_mock.return_value = response_mock
+
+        with self.patch_requests() as req:
+            req.iter_content.return_value = mock.Mock(
+                next=lambda: json.dumps(self.new))
 
         self._run()
         ver = self.version.reload()
