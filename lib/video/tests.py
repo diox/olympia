@@ -5,7 +5,6 @@ import tempfile
 from mock import Mock, patch
 from nose import SkipTest
 from nose.tools import eq_
-import waffle
 
 from django.conf import settings
 
@@ -189,7 +188,6 @@ class TestTask(amo.tests.TestCase):
     # up all the time.
 
     def setUp(self):
-        waffle.models.Switch.objects.create(name='video-encode', active=True)
         self.mock = Mock()
         self.mock.thumbnail_path = tempfile.mkstemp()[1]
         self.mock.image_path = tempfile.mkstemp()[1]
@@ -215,7 +213,6 @@ class TestTask(amo.tests.TestCase):
     @patch('lib.video.ffmpeg.Video.get_encoded')
     def test_resize_video_no_encode(self, get_encoded):
         raise SkipTest
-        waffle.models.Switch.objects.update(name='video-encode', active=False)
         resize_video(files['good'], self.mock)
         assert not get_encoded.called
         assert isinstance(self.mock.sizes, dict)

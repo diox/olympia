@@ -58,14 +58,13 @@ def _resize_video(src, instance, **kw):
         log.info('Video is not valid for %s' % instance.pk)
         return
 
-    if waffle.switch_is_active('video-encode'):
-        # Do the video encoding.
-        try:
-            video_file = video.get_encoded(amo.ADDON_PREVIEW_SIZES[1])
-        except Exception:
-            log.info('Error encoding video for %s, %s' %
-                     (instance.pk, video.meta), exc_info=True)
-            return
+    # Do the video encoding.
+    try:
+        video_file = video.get_encoded(amo.ADDON_PREVIEW_SIZES[1])
+    except Exception:
+        log.info('Error encoding video for %s, %s' %
+                 (instance.pk, video.meta), exc_info=True)
+        return
 
     # Do the thumbnail next, this will be the signal that the
     # encoding has finished.
@@ -75,8 +74,7 @@ def _resize_video(src, instance, **kw):
         # We'll have this file floating around because the video
         # encoded successfully, or something has gone wrong in which case
         # we don't want the file around anyway.
-        if waffle.switch_is_active('video-encode'):
-            os.remove(video_file)
+        os.remove(video_file)
         log.info('Error making thumbnail for %s' % instance.pk)
         return
 
