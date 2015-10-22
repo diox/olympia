@@ -30,8 +30,7 @@ from nose.tools import eq_, nottest
 from pyquery import PyQuery as pq
 from redisutils import mock_redis, reset_redis
 from rest_framework.views import APIView
-from waffle import cache_sample, cache_switch
-from waffle.models import Flag, Sample, Switch
+from waffle.models import Flag, Sample, Switch, cache_sample, cache_switch
 
 from access.acl import check_ownership
 import addons.search
@@ -50,8 +49,6 @@ from lib.es.signals import process, reset
 from translations.models import Translation
 from versions.models import ApplicationsVersions, Version
 from users.models import UserProfile
-
-from . import dynamic_urls
 
 
 # We might now have gettext available in jinja2.env.globals when running tests.
