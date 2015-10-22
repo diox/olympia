@@ -104,6 +104,7 @@ django-cache-machine==0.9.1
 -e git+https://github.com/yohanboniface/jingo-minify.git@amo.2014.09.03#egg=jingo_minify
 -e git+https://github.com/mozilla/django-moz-header.git@djangoapp#egg=django-moz-header
 -e git+https://github.com/washort/nuggets.git@02798dfce84030fca64775eaf56e92400f394e4f#egg=nuggets
+-e git+https://github.com/fwenzel/django-mozilla-product-details@f5a3c3c846fb75e12ad890b22ed5375d5b85ccb4#egg=django-mozilla-product-details
 -e git+https://github.com/mozilla/django-session-csrf@f00ad913c62e139d36078e8a7e07dab65a021386#egg=django-session-csrf
 ## Forked.
 -e git+https://github.com/EnTeQuAk/django-piston-oauth2@d629aad037915e96adffcfa9eabbc6750676a6ed#egg=django-piston-oauth2
