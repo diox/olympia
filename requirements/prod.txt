@@ -17,7 +17,7 @@ commonware==0.4.2
 cssutils==0.9.7b3
 defusedxml==0.4.1
 dennis==0.4.2
-Django==1.6.11
+Django==1.7.10
 dj-database-url==0.2.2
 django-aesfield==0.1.2
 django-cache-nuggets==0.1.1
@@ -49,7 +49,7 @@ hera==0.1.2
 html5lib==0.999
 httplib2==0.8.0
 importlib-no-failure==1.0.2
-jingo==0.7
+jingo==0.8
 kombu==3.0.26
 heka-py==0.30.3
 heka-py-cef==0.3.1
