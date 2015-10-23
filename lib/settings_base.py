@@ -1215,10 +1215,15 @@ PERF_THRESHOLD = 25
 # available pages when the filter is up-and-coming.
 PERSONA_DEFAULT_PAGES = 10
 
-REDIS_LOCATION = os.environ.get('REDIS_LOCATION', 'localhost:6379')
+REDIS_LOCATION = os.environ.get('REDIS_LOCATION', 'localhost')
+REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+
 REDIS_BACKENDS = {
-    'master': 'redis://{location}?socket_timeout=0.5'.format(
-        location=REDIS_LOCATION)}
+    'master': {
+        'HOST': REDIS_LOCATION,
+        'OPTIONS': {'socket_timeout': 0.5},
+    }
+}
 
 # Full path or executable path (relative to $PATH) of the spidermonkey js
 # binary.  It must be a version compatible with amo-validator.
