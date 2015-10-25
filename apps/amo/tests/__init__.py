@@ -838,7 +838,6 @@ def copy_file(source, dest, overwrite=False):
     if os.path.exists(dest):
         os.unlink(dest)
 
-
 @contextmanager
 def copy_file_to_temp(source):
     """Context manager that copies the source file to a temporary destination.
