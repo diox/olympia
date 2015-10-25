@@ -54,13 +54,6 @@ def init_jinja2():
     Markup.__mod__ = new
 
 
-def init_jingo():
-    """Load Jingo and trigger its Django monkey patches, so it supports the
-    `__html__` protocol used by Jinja2 and MarkupSafe."""
-    import jingo.monkey
-    jingo.monkey.patch()
-
-
 def configure_logging():
     """Configure the `logging` module to route logging based on settings
     in our various settings modules and defaults in `lib.log_settings_base`."""
