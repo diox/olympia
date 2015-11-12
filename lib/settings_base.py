@@ -440,11 +440,16 @@ PUENTE = {
     'DOMAIN_METHODS': {
         'django': [
             ('apps/**.py', 'python'),
+
+            # Make sure we're parsing django-admin templates with the django
+            # template extractor
+            ('apps/zadmin/templates/admin/*.html', 'django_babel.extract.extract_django'),
+
             ('apps/**/templates/**.html', 'jinja2'),
             ('templates/**.html', 'jinja2'),
             ('**/templates/**.lhtml', 'jinja2'),
         ],
-        'javascript': [
+        'djangojs': [
             # We can't say **.js because that would dive into mochikit and timeplot
             # and all the other baggage we're carrying.  Timeplot, in particular,
             # crashes the extractor with bad unicode data.
