@@ -1,10 +1,10 @@
 from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
+from django.utils.translation import ugettext as _, ugettext_lazy as _lazy
 
 import jingo
 import jinja2
-from tower import ugettext as _, ugettext_lazy as _lazy
 
 import amo
 from amo.helpers import urlparams

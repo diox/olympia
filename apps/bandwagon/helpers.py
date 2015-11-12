@@ -2,7 +2,7 @@ import math
 
 import jinja2
 from jingo import register, env
-from tower import ugettext as _
+from django.utils.translation import ugettext as _
 
 from addons.helpers import new_context
 from amo.helpers import login_link

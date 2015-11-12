@@ -24,7 +24,6 @@ from django.utils import translation
 
 import mock
 import pytest
-import tower
 from dateutil.parser import parse as dateutil_parser
 from nose.tools import eq_, nottest
 from pyquery import PyQuery as pq
@@ -52,12 +51,12 @@ from users.models import UserProfile
 
 
 # We might now have gettext available in jinja2.env.globals when running tests.
-# It's only added to the globals when activating a language with tower (which
+# It's only added to the globals when activating a language (which
 # is usually done in the middlewares). During tests, however, we might not be
 # running middlewares, and thus not activating a language, and thus not
 # installing gettext in the globals, and thus not have it in the context when
 # rendering templates.
-tower.activate('en-us')
+translation.activate('en-us')
 
 
 def formset(*args, **kw):
@@ -311,14 +310,14 @@ class TestCase(MockEsMixin, RedisTest, BaseTestCase):
         if locale:
             rf = RequestFactory()
             prefixer = Prefixer(rf.get('/%s/' % (locale,)))
-            tower.activate(locale)
+            translation.activate(locale)
         if app:
             prefixer.app = app
         set_url_prefix(prefixer)
         yield
         old_prefix.app = old_app
         set_url_prefix(old_prefix)
-        tower.activate(old_locale)
+        translation.activate(old_locale)
 
     def assertNoFormErrors(self, response):
         """Asserts that no form in the context has errors.

@@ -6,9 +6,9 @@ from django.db import models
 from django.db.models import Sum
 from django.template import Context, loader
 from django.utils.datastructures import SortedDict
+from django.utils.translation import ugettext_lazy as _lazy
 
 import commonware.log
-from tower import ugettext_lazy as _lazy
 
 import amo
 import amo.models

@@ -3,10 +3,10 @@ import logging
 
 from django.core.cache import cache
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 import bleach
 import caching.base as caching
-from tower import ugettext_lazy as _
 
 import amo.models
 from amo import helpers

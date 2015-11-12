@@ -3,8 +3,7 @@ import re
 from django.core import exceptions
 from django.db import models
 from django.forms import fields
-
-from tower import ugettext as _
+from django.utils.translation import ugettext as _
 
 from amo.widgets import ColorWidget
 

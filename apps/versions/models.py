@@ -7,11 +7,11 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import default_storage as storage
 from django.db import models
+from django.utils.translation import ugettext as _
 
 import caching.base
 import commonware.log
 import jinja2
-from tower import ugettext as _
 
 import addons.query
 import amo

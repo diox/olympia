@@ -1,7 +1,7 @@
 import jinja2
 
 import jingo
-from tower import ugettext as _
+from django.utils.translation import ugettext as _
 
 from access import acl
 from reviews.models import ReviewFlag

@@ -1,8 +1,8 @@
 from django.contrib.syndication.views import Feed
 from django.shortcuts import render
+from django.utils.translation import ugettext as _
 
 import caching.base as caching
-from tower import ugettext as _
 
 import amo
 from amo.helpers import url, absolutify

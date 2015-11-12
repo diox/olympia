@@ -16,14 +16,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template import Context, loader
 from django.utils.http import urlquote
 from django.utils.timezone import now
+from django.utils.translation import ugettext as _, ugettext_lazy as _lazy
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 import commonware.log
 import waffle
 from PIL import Image
-from tower import ugettext as _
-from tower import ugettext_lazy as _lazy
 from waffle.decorators import waffle_switch
 
 import amo

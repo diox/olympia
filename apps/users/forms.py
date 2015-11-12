@@ -9,11 +9,11 @@ from django.contrib.auth import forms as auth_forms
 from django.contrib.auth.tokens import default_token_generator
 from django.forms.util import ErrorList
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext as _, ugettext_lazy as _lazy
 
 import captcha.fields
 import commonware.log
 import happyforms
-from tower import ugettext as _, ugettext_lazy as _lazy
 
 import amo
 import users.notifications as email

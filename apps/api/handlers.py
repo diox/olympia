@@ -1,12 +1,12 @@
 import functools
 
 from django.db import transaction
+from django.utils.translation import ugettext as _
 
 import commonware.log
 import happyforms
 from piston.handler import AnonymousBaseHandler, BaseHandler
 from piston.utils import rc
-from tower import ugettext as _
 
 import amo
 from access import acl

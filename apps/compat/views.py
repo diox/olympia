@@ -5,8 +5,7 @@ from django import http
 from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
-
-from tower import ugettext as _
+from django.utils.translation import ugettext as _
 
 import amo
 import amo.utils

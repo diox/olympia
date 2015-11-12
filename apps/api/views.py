@@ -12,7 +12,7 @@ from django.core.cache import cache
 from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import render
 from django.template.context import get_standard_processors
-from django.utils import encoding, translation
+from django.utils.translation import ugettext as _, ugettext_lazy, get_language
 from django.utils.encoding import smart_str
 from django.views.decorators.csrf import csrf_exempt
 
@@ -21,7 +21,6 @@ import jingo
 import waffle
 from caching.base import cached_with
 from piston.utils import rc
-from tower import ugettext as _, ugettext_lazy
 
 import amo
 import api
@@ -187,7 +186,7 @@ def addon_filter(addons, addon_type, limit, app, platform, version,
     addons.extend(personas)
 
     # We prefer add-ons that support the current locale.
-    lang = translation.get_language()
+    lang = get_language()
 
     def partitioner(x):
         return x.description is not None and (x.description.locale == lang)
@@ -460,7 +459,7 @@ class ListView(APIView):
         def f():
             return self._process(addons, *args)
 
-        return cached_with(addons, f, map(encoding.smart_str, args))
+        return cached_with(addons, f, map(smart_str, args))
 
     def _process(self, addons, *args):
         return self.render('api/list.xml',

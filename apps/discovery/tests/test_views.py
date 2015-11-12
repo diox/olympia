@@ -3,13 +3,13 @@ import json
 from django import test
 from django.core.cache import cache
 from django.test.utils import override_settings
+from django.utils.translation import trim_whitespace
 
 import mock
 import waffle
 from jingo.helpers import datetime as datetime_filter
 from nose.tools import eq_
 from pyquery import PyQuery as pq
-from tower import strip_whitespace
 
 import amo
 import amo.tests
@@ -487,7 +487,7 @@ class TestPersonaDetails(amo.tests.TestCase):
             if detail.find('h3').text_content() == 'Created':
                 created = detail.find('p').text_content()
                 eq_(created,
-                    strip_whitespace(datetime_filter(self.addon.created)))
+                    trim_whitespace(datetime_filter(self.addon.created)))
                 break  # Needed, or we go in the "else" clause.
         else:
             assert False, 'No "Created" entry found.'
