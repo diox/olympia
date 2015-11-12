@@ -362,6 +362,7 @@ INSTALLED_APPS = (
     # This the path management and monkey-patching required to load the rest,
     # so it must come first.
     'olympia',
+    'core',
 
     'amo',  # amo comes first so it always takes precedence.
     'abuse',
