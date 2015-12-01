@@ -13,7 +13,7 @@ from django.template.defaultfilters import filesizeformat
 import jinja2
 import commonware.log
 from cache_nuggets.lib import memoize, Message
-from jingo import register, env
+from jingo import register, get_env
 
 import amo
 from amo.utils import rm_local_tmp_dir
@@ -48,7 +48,7 @@ def file_viewer_class(value, key):
 def file_tree(files, selected):
     depth = 0
     output = ['<ul class="root">']
-    t = env.get_template('files/node.html')
+    t = get_env().get_template('files/node.html')
     for k, v in files.items():
         if v['depth'] > depth:
             output.append('<ul class="js-hidden">')
