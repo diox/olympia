@@ -47,7 +47,7 @@ web/media/commbadge
 web/media/marketplace-stats
 *.signed.zip
 *.po~
-web/site-static/*
+site-static/*
 user-media/*
 .tox/
 .cache/
