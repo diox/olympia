@@ -524,6 +524,7 @@ MINIFY_BUNDLES = {
             'css/impala/tables.less',
             'css/impala/compat.less',
             'css/impala/localizers.less',
+            'css/impala/fxa-migration.less',
         ),
         'zamboni/stats': (
             'css/impala/stats.less',
@@ -1475,4 +1476,13 @@ JWT_AUTH = {
     # This adds some padding to timestamp validation in case client/server
     # clocks are off.
     'JWT_LEEWAY': 5,
+}
+
+REST_FRAMEWORK = {
+    # Set this because the default is to also include:
+    #   'rest_framework.renderers.BrowsableAPIRenderer'
+    # Which it will try to use if the client accepts text/html.
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
 }
