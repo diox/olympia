@@ -3,20 +3,11 @@ required for Olympia to start up correctly."""
 
 import logging
 import os
-import sys
 import warnings
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
-
-
-def update_system_path():
-    """Add our `apps` directory to the front of `sys.path` so our app modules
-    are importable without the `apps.` prefix."""
-
-    ROOT = os.path.dirname(os.path.abspath(__file__))
-    # Insert the 'apps' folder to the front of sys.path so it takes precedence.
-    sys.path.insert(0, os.path.join(ROOT, 'apps'))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
+log = logging.getLogger('z.startup')
 
 
 def filter_warnings():
@@ -61,48 +52,12 @@ def init_jingo():
     jingo.monkey.patch()
 
 
-def init_amo():
-    """Load the `amo` module.
-
-    Waffle and amo form an import cycle because amo patches waffle and waffle
-    loads the user model, so we have to make sure amo gets imported before
-    anything else imports waffle."""
-    global amo
-    amo = __import__('amo')
-
-
-def init_celery():
-    """Initialize Celery, and make our app instance available as `celery_app`
-    for use by the `celery` command."""
-    from amo import celery
-
-    global celery_app
-    celery_app = celery.app
-
-
 def configure_logging():
     """Configure the `logging` module to route logging based on settings
     in our various settings modules and defaults in `lib.log_settings_base`."""
     from lib.log_settings_base import log_configure
 
     log_configure()
-
-
-def init_newrelic():
-    """Init NewRelic, if we're configured to use it."""
-    # Do not import this from the top-level. It depends on set-up from the
-    # functions above.
-    from django.conf import settings
-
-    newrelic_ini = getattr(settings, 'NEWRELIC_INI', None)
-    if newrelic_ini:
-        import newrelic.agent
-        try:
-            newrelic.agent.initialize(newrelic_ini)
-            global load_newrelic
-            load_newrelic = True
-        except Exception:
-            log.exception('Failed to load new relic config.')
 
 
 def load_product_details():
@@ -117,16 +72,9 @@ def load_product_details():
         product_details.__init__()  # reload the product details
 
 
-log = logging.getLogger('z.startup')
-load_newrelic = False
-
-update_system_path()
 filter_warnings()
 init_session_csrf()
 init_jinja2()
-init_amo()
 configure_logging()
 init_jingo()
-init_celery()
-init_newrelic()
 load_product_details()
