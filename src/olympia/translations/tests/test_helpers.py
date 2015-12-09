@@ -6,8 +6,8 @@ import pytest
 from mock import Mock, patch
 from nose.tools import eq_
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from addons.models import Addon
 from translations import helpers
 from translations.fields import save_signal
@@ -121,7 +121,7 @@ def test_l10n_menu():
 
 
 @patch.object(settings, 'AMO_LANGUAGES', ('de', 'en-US', 'es', 'fr', 'pt-BR'))
-class TestAllLocales(amo.tests.TestCase):
+class TestAllLocales(TestCase):
     def test_all_locales_none(self):
         addon = None
         field_name = 'description'

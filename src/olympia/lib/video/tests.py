@@ -9,8 +9,8 @@ from nose.tools import eq_
 
 from django.conf import settings
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from amo.tests.test_helpers import get_image_path
 from devhub.models import UserLog
 from lib.video import get_library
@@ -60,7 +60,7 @@ TOTEM_INFO_HAS_AUDIO=False
 """
 
 
-class TestFFmpegVideo(amo.tests.TestCase):
+class TestFFmpegVideo(TestCase):
 
     def setUp(self):
         super(TestFFmpegVideo, self).setUp()
@@ -106,7 +106,7 @@ class TestFFmpegVideo(amo.tests.TestCase):
             os.remove(video)
 
 
-class TestBadFFmpegVideo(amo.tests.TestCase):
+class TestBadFFmpegVideo(TestCase):
 
     def setUp(self):
         super(TestBadFFmpegVideo, self).setUp()
@@ -131,7 +131,7 @@ class TestBadFFmpegVideo(amo.tests.TestCase):
                           amo.ADDON_PREVIEW_SIZES[0])
 
 
-class TestTotemVideo(amo.tests.TestCase):
+class TestTotemVideo(TestCase):
 
     def setUp(self):
         super(TestTotemVideo, self).setUp()
@@ -190,7 +190,7 @@ def test_choose(ffmpeg_, totem_):
     eq_(get_library(), None)
 
 
-class TestTask(amo.tests.TestCase):
+class TestTask(TestCase):
     # TODO(andym): make these more sparkly and cope with totem and not blow
     # up all the time.
 

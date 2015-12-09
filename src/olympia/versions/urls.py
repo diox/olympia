@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 from versions.feeds import VersionsRss
 
-from addons.urls import ADDON_ID
+from olympia.addons.urls import ADDON_ID
+
 from . import views
 
 urlpatterns = patterns(

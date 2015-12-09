@@ -5,7 +5,7 @@ from django.db.models import Count, Max
 
 import cronjobs
 
-import amo
+from olympia import amo
 import amo.search
 import amo.utils
 from addons.models import Addon

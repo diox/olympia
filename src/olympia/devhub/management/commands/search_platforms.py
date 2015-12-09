@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Count
 
 from addons.models import Version
-import amo
+from olympia import amo
 from amo.utils import chunked
 from amo.urlresolvers import reverse
 from files.models import File

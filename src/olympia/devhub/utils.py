@@ -8,7 +8,7 @@ from django.forms import ValidationError
 from celery import chain, group
 from tower import ugettext as _
 
-import amo
+from olympia import amo
 import commonware.log
 from addons.models import Addon
 from amo.decorators import write

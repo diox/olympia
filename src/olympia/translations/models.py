@@ -5,7 +5,7 @@ from django.utils import encoding
 import bleach
 import commonware.log
 
-import amo
+from olympia import amo
 import amo.models
 from amo import urlresolvers
 from . import utils

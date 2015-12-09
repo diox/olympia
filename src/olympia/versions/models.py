@@ -13,10 +13,10 @@ import commonware.log
 import jinja2
 from tower import ugettext as _
 
-import addons.query
-import amo
+from olympia import amo
 import amo.models
 import amo.utils
+import addons.query
 from amo.decorators import use_master
 from amo.urlresolvers import reverse
 from amo.helpers import user_media_path, id_to_path

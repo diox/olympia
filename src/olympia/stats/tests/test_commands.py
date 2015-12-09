@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core import management
 
 import amo.search
-import amo.tests
+from olympia.amo.tests import TestCase
 from addons.models import Addon, Persona
 from stats.management.commands.download_counts_from_file import is_valid_source
 from stats.management.commands.update_counts_from_file import Command
@@ -43,7 +43,7 @@ class FixturesFolderMixin(object):
         super(FixturesFolderMixin, self).tearDown()
 
 
-class TestADICommand(FixturesFolderMixin, amo.tests.TestCase):
+class TestADICommand(FixturesFolderMixin, TestCase):
     fixtures = ('base/addon_3615', 'base/featured', 'addons/persona',
                 'base/appversion.json')
     date = '2014-07-10'
@@ -234,7 +234,7 @@ class TestADICommand(FixturesFolderMixin, amo.tests.TestCase):
                                    prefixes=['baz', 'cruux'])
 
 
-class TestThemeADICommand(FixturesFolderMixin, amo.tests.TestCase):
+class TestThemeADICommand(FixturesFolderMixin, TestCase):
     date = '2014-11-06'
     fixtures = ['base/appversion.json']
     source_folder = '1093699'

@@ -11,28 +11,28 @@ import commonware.log
 import happyforms
 from quieter_formset.formset import BaseFormSet
 from tower import ugettext as _, ugettext_lazy as _lazy, ungettext as ngettext
-
-from access import acl
-import amo
 import captcha.fields
-from amo.fields import ColorField
-from amo.urlresolvers import reverse
-from amo.utils import slug_validator, slugify, sorted_groupby, remove_icons
-from addons.models import (Addon, AddonCategory, BlacklistedSlug, Category,
-                           Persona)
-from addons.tasks import save_theme, save_theme_reupload
-from addons.utils import reverse_name_lookup
-from addons.widgets import IconWidgetRenderer, CategoriesSelectMultiple
-from devhub import tasks as devhub_tasks
-from tags.models import Tag
-from translations import LOCALES
-from translations.fields import TransField, TransTextarea
-from translations.forms import TranslationFormMixin
-from translations.models import Translation
-from translations.utils import transfield_changed
-from translations.widgets import TranslationTextInput
-from users.models import UserEmailField
-from versions.models import Version
+
+from olympia import amo
+from olympia.access import acl
+from olympia.amo.fields import ColorField
+from olympia.amo.urlresolvers import reverse
+from olympia.amo.utils import slug_validator, slugify, sorted_groupby, remove_icons
+from olympia.addons.models import (
+    Addon, AddonCategory, BlacklistedSlug, Category, Persona)
+from olympia.addons.tasks import save_theme, save_theme_reupload
+from olympia.addons.utils import reverse_name_lookup
+from olympia.addons.widgets import IconWidgetRenderer, CategoriesSelectMultiple
+from olympia.devhub import tasks as devhub_tasks
+from olympia.tags.models import Tag
+from olympia.translations import LOCALES
+from olympia.translations.fields import TransField, TransTextarea
+from olympia.translations.forms import TranslationFormMixin
+from olympia.translations.models import Translation
+from olympia.translations.utils import transfield_changed
+from olympia.translations.widgets import TranslationTextInput
+from olympia.users.models import UserEmailField
+from olympia.versions.models import Version
 
 log = commonware.log.getLogger('z.addons')
 

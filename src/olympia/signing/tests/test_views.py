@@ -7,7 +7,7 @@ from django.test.utils import override_settings
 import mock
 from rest_framework.response import Response
 
-import amo
+from olympia import amo
 from addons.models import Addon, AddonUser
 from api.tests.utils import APIAuthTestCase
 from devhub import tasks

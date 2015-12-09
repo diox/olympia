@@ -8,7 +8,7 @@ from django.db import transaction
 
 from PIL import Image
 
-import amo
+from olympia import amo
 from addons.models import AppSupport, Persona
 from editors.models import RereviewQueueTheme
 from amo.celery import task

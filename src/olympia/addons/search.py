@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
-import amo
+from olympia import amo
 import amo.search
 from amo.models import SearchMixin
 from addons.cron import reindex_addons

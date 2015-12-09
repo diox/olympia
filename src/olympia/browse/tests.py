@@ -15,8 +15,8 @@ from nose.tools import eq_, assert_raises, nottest
 from pyquery import PyQuery as pq
 from tower import strip_whitespace
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from amo.urlresolvers import reverse
 from amo.helpers import absolutify, numberfmt, urlparams
 from addons.tests.test_views import TestMobile
@@ -61,7 +61,7 @@ def test_default_sort(self, sort, key=None, reverse=True, sel_class='opt'):
     test_listing_sort(self, sort, key, reverse, sel_class)
 
 
-class ExtensionTestCase(amo.tests.ESTestCaseWithAddons):
+class ExtensionTestCase(ESTestCaseWithAddons):
 
     def setUp(self):
         super(ExtensionTestCase, self).setUp()
@@ -153,7 +153,7 @@ def test_locale_display_name():
     assert_raises(KeyError, check, 'fake-lang', '', '')
 
 
-class TestListing(amo.tests.TestCase):
+class TestListing(TestCase):
     fixtures = ['base/appversion', 'base/users', 'base/category',
                 'base/featured', 'addons/featured', 'addons/listed',
                 'base/collections', 'bandwagon/featured_collections',
@@ -278,7 +278,7 @@ class TestListing(amo.tests.TestCase):
         assert "sort=popular" in doc('.seeall a').attr('href')
 
 
-class TestLanguageTools(amo.tests.TestCase):
+class TestLanguageTools(TestCase):
     fixtures = ['browse/test_views']
 
     def setUp(self):
@@ -331,7 +331,7 @@ class TestLanguageTools(amo.tests.TestCase):
         eq_(list(response.context['locales']), [])
 
 
-class TestThemes(amo.tests.TestCase):
+class TestThemes(TestCase):
     fixtures = ('base/category', 'base/addon_6704_grapple', 'base/addon_3615')
 
     def setUp(self):
@@ -390,7 +390,7 @@ class TestThemes(amo.tests.TestCase):
             eq_(doc('#side-categories #c-%s' % id).length, 1)
 
 
-class TestFeeds(amo.tests.TestCase):
+class TestFeeds(TestCase):
     fixtures = ['base/appversion', 'base/users', 'base/category',
                 'base/featured', 'addons/featured', 'addons/listed',
                 'base/collections', 'bandwagon/featured_collections',
@@ -484,7 +484,7 @@ class TestFeeds(amo.tests.TestCase):
         self._check_sort_urls(s.find('a.extra-opt'), 'extras')
 
 
-class TestFeaturedLocale(amo.tests.TestCase):
+class TestFeaturedLocale(TestCase):
     fixtures = ['base/appversion', 'base/category', 'base/users',
                 'base/addon_3615', 'base/featured', 'addons/featured',
                 'browse/nameless-addon', 'base/collections',
@@ -715,7 +715,7 @@ class TestFeaturedLocale(amo.tests.TestCase):
         self.reset()
 
 
-class TestListingByStatus(amo.tests.TestCase):
+class TestListingByStatus(TestCase):
     fixtures = ['base/addon_3615']
 
     def setUp(self):
@@ -778,7 +778,7 @@ class TestListingByStatus(amo.tests.TestCase):
         self.check([])
 
 
-class BaseSearchToolsTest(amo.tests.TestCase):
+class BaseSearchToolsTest(TestCase):
     fixtures = ('base/appversion', 'base/featured',
                 'addons/featured', 'base/category', 'addons/listed')
 
@@ -988,7 +988,7 @@ class TestSearchToolsFeed(BaseSearchToolsTest):
             u'Ivan Krstić :: Search Tools :: Add-ons for Firefox')
 
 
-class TestLegacyRedirects(amo.tests.TestCase):
+class TestLegacyRedirects(TestCase):
     fixtures = ['base/category']
 
     def redirects(self, from_, to, status_code=301):
@@ -1067,7 +1067,7 @@ class TestLegacyRedirects(amo.tests.TestCase):
         eq_(r.status_code, 404)
 
 
-class TestCategoriesFeed(amo.tests.TestCase):
+class TestCategoriesFeed(TestCase):
 
     def setUp(self):
         super(TestCategoriesFeed, self).setUp()
@@ -1098,7 +1098,7 @@ class TestCategoriesFeed(amo.tests.TestCase):
         assert t.endswith(url), t
 
 
-class TestFeaturedFeed(amo.tests.TestCase):
+class TestFeaturedFeed(TestCase):
     fixtures = ['addons/featured', 'base/addon_3615',
                 'base/appversion', 'base/appversion', 'base/collections',
                 'base/featured', 'base/users',
@@ -1118,7 +1118,7 @@ class TestFeaturedFeed(amo.tests.TestCase):
             Addon.objects.featured(amo.FIREFOX).count())
 
 
-class TestPersonas(amo.tests.TestCase):
+class TestPersonas(TestCase):
     fixtures = ('base/appversion', 'base/featured',
                 'addons/featured', 'addons/persona')
 
@@ -1299,7 +1299,7 @@ class TestMobileExtensions(TestMobile):
         eq_(doc('.no-results').length, 1)
 
 
-class TestMobileHeader(amo.tests.MobileTest, amo.tests.TestCase):
+class TestMobileHeader(amo.tests.MobileTest, TestCase):
     fixtures = ['base/users']
 
     def setUp(self):

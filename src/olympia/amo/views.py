@@ -17,11 +17,11 @@ import waffle
 from django_statsd.views import record as django_statsd_record
 from django_statsd.clients import statsd
 
-import amo
-import api
-from amo.decorators import post_required
-from amo.utils import log_cef
-from amo.context_processors import get_collect_timings
+from olympia import amo, api
+from olympia.amo.decorators import post_required
+from olympia.amo.utils import log_cef
+from olympia.amo.context_processors import get_collect_timings
+
 from . import monitors
 
 log = commonware.log.getLogger('z.amo')

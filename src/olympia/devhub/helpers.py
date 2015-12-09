@@ -7,7 +7,7 @@ from jingo import register
 from jingo.helpers import datetime
 from tower import ugettext as _, ungettext as ngettext
 
-import amo
+from olympia import amo
 from amo.urlresolvers import reverse
 from amo.helpers import breadcrumbs, impala_breadcrumbs, page_title
 from access import acl

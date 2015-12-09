@@ -3,8 +3,9 @@ from nose.tools import eq_, ok_
 
 from django.utils.encoding import force_unicode
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia import amo
+from olympia.amo.tests import TestCase
 from addons.models import Addon
 from editors.forms import get_review_form
 from editors.helpers import NOMINATED_STATUSES
@@ -12,7 +13,7 @@ from editors.models import CannedResponse
 from users.models import UserProfile
 
 
-class TestReviewActions(amo.tests.TestCase):
+class TestReviewActions(TestCase):
     fixtures = ('base/users', 'base/addon_3615')
 
     def setUp(self):

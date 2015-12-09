@@ -8,8 +8,8 @@ from django.core.cache import cache
 
 from nose.tools import eq_, ok_
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from amo.urlresolvers import reverse
 from blocklist.models import (BlocklistApp, BlocklistCA, BlocklistDetail,
                               BlocklistGfx, BlocklistItem, BlocklistIssuerCert,
@@ -57,7 +57,7 @@ class XMLAssertsMixin(object):
         assert 'http://example.com/?foo=&lt;bar&gt;&amp;baz=crux' in r.content
 
 
-class BlocklistViewTest(amo.tests.TestCase):
+class BlocklistViewTest(TestCase):
 
     def setUp(self):
         super(BlocklistViewTest, self).setUp()

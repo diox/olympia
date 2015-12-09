@@ -4,12 +4,12 @@ import json
 from mock import patch
 from nose.tools import eq_
 
-from addons.models import Addon
-from amo.urlresolvers import reverse
-import amo.tests
+from olympia.addons.models import Addon
+from olympia.amo.urlresolvers import reverse
+from olympia.amo.tests import TestCase
 
 
-class TestPerfViews(amo.tests.TestCase):
+class TestPerfViews(TestCase):
     fixtures = ['base/users', 'base/addon_3615']
 
     def setUp(self):

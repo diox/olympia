@@ -2,7 +2,7 @@ from django.db import models
 
 import json_field
 
-import amo
+from olympia import amo
 import amo.models
 
 

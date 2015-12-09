@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-import amo
+from olympia import amo
 from addons.forms import AddonForm
 from addons.models import Addon, AddonUser
 from amo.decorators import allow_cross_site_request

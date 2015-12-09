@@ -12,7 +12,7 @@ from mock import patch
 from nose.tools import eq_
 from pyquery import PyQuery as pq
 
-import amo
+from olympia import amo
 import api
 from addons.models import (Addon, AppSupport, CompatOverride,
                            CompatOverrideRange, Persona, Preview)

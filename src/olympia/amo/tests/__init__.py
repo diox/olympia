@@ -35,7 +35,7 @@ from waffle.models import Flag, Sample, Switch
 
 from access.acl import check_ownership
 import addons.search
-import amo
+from olympia import amo
 import amo.search
 import stats.search
 from access.models import Group, GroupUser

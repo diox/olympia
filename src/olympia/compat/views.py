@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from tower import ugettext as _
 
-import amo
+from olympia import amo
 import amo.utils
 from addons.decorators import owner_or_unlisted_reviewer
 from amo.decorators import post_required

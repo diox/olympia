@@ -4,7 +4,7 @@ import shutil
 
 from django.conf import settings
 
-import amo
+from olympia import amo
 from amo.celery import task
 from amo.decorators import set_modified_on
 from lib.video import library

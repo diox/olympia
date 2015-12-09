@@ -8,7 +8,7 @@ from piston.handler import AnonymousBaseHandler, BaseHandler
 from piston.utils import rc
 from tower import ugettext as _
 
-import amo
+from olympia import amo
 from access import acl
 from addons.forms import AddonForm
 from addons.models import Addon, AddonUser

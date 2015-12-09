@@ -21,7 +21,7 @@ from cache_nuggets.lib import memoize
 from dateutil.parser import parse
 from product_details import product_details
 
-import amo
+from olympia import amo
 from access import acl
 from addons.decorators import addon_view_factory
 from addons.models import Addon

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from nose.tools import eq_, ok_
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from addons.models import Category
 from constants.applications import APPS
 from landfill.categories import generate_categories
 
 
-class CategoriesTests(amo.tests.TestCase):
+class CategoriesTests(TestCase):
 
     def test_categories_themes_generation(self):
         data = generate_categories()

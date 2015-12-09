@@ -36,7 +36,7 @@ from mock import Mock, patch
 from nose.tools import eq_
 from piston.models import Consumer
 
-import amo
+from olympia import amo
 from amo.helpers import absolutify
 from amo.tests import TestCase
 from amo.urlresolvers import reverse

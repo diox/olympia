@@ -10,7 +10,7 @@ from product_details import product_details
 from mobility.decorators import mobile_template
 from tower import ugettext_lazy as _lazy
 
-import amo
+from olympia import amo
 import amo.models
 from amo.models import manual_order
 from amo.urlresolvers import reverse

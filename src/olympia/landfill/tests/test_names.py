@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from nose.tools import eq_, ok_
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from landfill.names import generate_names
 
 
-class NamesTests(amo.tests.TestCase):
+class NamesTests(TestCase):
 
     def test_names_generation(self):
         eq_(len(generate_names()), 136)

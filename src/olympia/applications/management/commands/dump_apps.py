@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.files.storage import default_storage as storage
 import commonware.log
-import amo
+from olympia import amo
 from applications.models import AppVersion
 
 log = commonware.log.getLogger('z.cron')

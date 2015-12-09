@@ -10,7 +10,7 @@ from urllib2 import urlopen
 
 from django.conf import settings
 
-import amo
+from olympia import amo
 
 
 log = logging.getLogger('z.devhub.task')

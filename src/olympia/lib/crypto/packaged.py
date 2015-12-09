@@ -14,7 +14,7 @@ import requests
 from django_statsd.clients import statsd
 from signing_clients.apps import get_signature_serial_number, JarExtractor
 
-import amo
+from olympia import amo
 from versions.compare import version_int
 
 log = commonware.log.getLogger('z.crypto')

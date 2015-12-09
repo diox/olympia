@@ -16,8 +16,8 @@ from mock import Mock, patch
 from nose.tools import eq_
 from pyquery import PyQuery as pq
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 import reviews
 from abuse.models import AbuseReport
 from access.models import Group, GroupUser
@@ -35,7 +35,7 @@ from zadmin.models import get_config, set_config
 from .test_models import create_addon_file
 
 
-class EditorTest(amo.tests.TestCase):
+class EditorTest(TestCase):
     fixtures = ['base/users', 'base/approvals', 'editors/pending-queue']
 
     def login_as_admin(self):
@@ -2812,7 +2812,7 @@ class TestWhiteboard(ReviewBase):
         assert self.addon.reload().whiteboard == whiteboard_info
 
 
-class TestAbuseReports(amo.tests.TestCase):
+class TestAbuseReports(TestCase):
     fixtures = ['base/users', 'base/addon_3615']
 
     def setUp(self):

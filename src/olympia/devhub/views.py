@@ -26,7 +26,7 @@ from tower import ugettext as _
 from tower import ugettext_lazy as _lazy
 from waffle.decorators import waffle_switch
 
-import amo
+from olympia import amo
 import amo.utils
 from access import acl
 from addons import forms as addon_forms

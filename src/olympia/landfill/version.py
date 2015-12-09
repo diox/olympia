@@ -1,7 +1,7 @@
 import random
 from datetime import datetime
 
-import amo
+from olympia import amo
 from applications.models import AppVersion
 from files.models import File
 from versions.models import ApplicationsVersions, Version

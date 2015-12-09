@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.utils.html import strip_tags
 
-import amo
+from olympia import amo
 from amo.helpers import absolutify
 from amo.urlresolvers import reverse
 from amo.utils import urlparams, epoch

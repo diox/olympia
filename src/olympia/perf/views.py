@@ -4,7 +4,7 @@ from django.views.decorators.cache import cache_control
 
 import redisutils
 
-import amo
+from olympia import amo
 from addons.models import Addon
 
 from .models import Performance, PerformanceOSVersion

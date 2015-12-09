@@ -5,14 +5,14 @@ from django.db import connection, transaction
 from django.db.models import Count
 
 import commonware.log
+import cronjobs
 from celery.task.sets import TaskSet
 
-import amo
-from amo.celery import task
-from amo.utils import chunked, slugify
-from bandwagon.models import (Collection, SyncedCollection, CollectionVote,
+from olympia import amo
+from olympia.amo.celery import task
+from olympia.amo.utils import chunked, slugify
+from olympia.bandwagon.models import (Collection, SyncedCollection, CollectionVote,
                               CollectionWatcher)
-import cronjobs
 
 task_log = commonware.log.getLogger('z.task')
 

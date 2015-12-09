@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 
 from tower import ugettext as _
 
-import amo
+from olympia import amo
 from amo.urlresolvers import reverse
 from amo.helpers import absolutify, url, page_name
 from addons.models import Addon, Category

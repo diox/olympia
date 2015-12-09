@@ -23,7 +23,7 @@ from caching.base import cached_with
 from piston.utils import rc
 from tower import ugettext as _, ugettext_lazy
 
-import amo
+from olympia import amo
 import api
 from addons.models import Addon, CompatOverride
 from amo.decorators import post_required, allow_cross_site_request, json_view

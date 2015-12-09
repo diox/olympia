@@ -4,7 +4,7 @@ from django.utils.feedgenerator import Rss201rev2Feed as RSS
 
 from tower import ugettext as _
 
-import amo
+from olympia import amo
 from addons.models import Addon
 from amo.helpers import absolutify, url, strip_html
 from devhub.models import ActivityLog, RssKey

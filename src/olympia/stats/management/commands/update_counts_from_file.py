@@ -10,7 +10,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 import commonware.log
 
-import amo
+from olympia import amo
 from addons.models import Addon
 from stats.models import update_inc, UpdateCount
 

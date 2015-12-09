@@ -8,7 +8,7 @@ import commonware.log
 from product_details import product_details
 from tower import ugettext as _
 
-import amo
+from olympia import amo
 from access.models import Group
 from addons.models import Category
 from amo.decorators import json_view, login_required, post_required, write

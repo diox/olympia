@@ -2,14 +2,14 @@ from django.utils import translation
 
 from nose.tools import eq_
 
-import amo.tests
-from addons.models import Addon
-from reviews import tasks
-from reviews.models import check_spam, GroupedRating, Review, ReviewFlag, Spam
-from users.models import UserProfile
+from olympia.amo.tests import TestCase
+from olympia.addons.models import Addon
+from olympia.reviews import tasks
+from olympia.reviews.models import check_spam, GroupedRating, Review, ReviewFlag, Spam
+from olympia.users.models import UserProfile
 
 
-class TestReviewModel(amo.tests.TestCase):
+class TestReviewModel(TestCase):
     fixtures = ['reviews/test_models']
 
     def test_translations(self):
@@ -71,7 +71,7 @@ class TestReviewModel(amo.tests.TestCase):
         assert flag.review == review
 
 
-class TestGroupedRating(amo.tests.TestCase):
+class TestGroupedRating(TestCase):
     fixtures = ['reviews/dev-reply']
     grouped_ratings = [(1, 0), (2, 0), (3, 0), (4, 1), (5, 0)]
 
@@ -93,7 +93,7 @@ class TestGroupedRating(amo.tests.TestCase):
         eq_(GroupedRating.get(1865, update_none=True), self.grouped_ratings)
 
 
-class TestSpamTest(amo.tests.TestCase):
+class TestSpamTest(TestCase):
     fixtures = ['reviews/test_models']
 
     def test_create_not_there(self):
@@ -105,7 +105,7 @@ class TestSpamTest(amo.tests.TestCase):
         assert Spam().add(Review.objects.all()[0], 'numbers')
 
 
-class TestRefreshTest(amo.tests.ESTestCase):
+class TestRefreshTest(ESTestCase):
     fixtures = ['base/users']
 
     def setUp(self):

@@ -6,8 +6,8 @@ from django.core import mail
 
 from nose.tools import eq_
 
-import amo
-import amo.tests
+from olympia import amo
+from olympia.amo.tests import TestCase
 from amo.tests import addon_factory
 from addons.models import Addon
 from versions.models import Version, version_uploaded, ApplicationsVersions
@@ -73,7 +73,7 @@ def create_search_ext(name, version_str, addon_status, file_status,
     return ad
 
 
-class TestQueue(amo.tests.TestCase):
+class TestQueue(TestCase):
     """Tests common attributes and coercions that each view must support."""
     __test__ = False  # this is an abstract test case
     listed = True  # Are we testing listed or unlisted queues?
@@ -359,7 +359,7 @@ class TestUnlistedPreliminaryQueue(TestPreliminaryQueue):
     listed = False
 
 
-class TestEditorSubscription(amo.tests.TestCase):
+class TestEditorSubscription(TestCase):
     fixtures = ['base/addon_3615', 'base/users']
 
     def setUp(self):
@@ -417,7 +417,7 @@ class TestEditorSubscription(amo.tests.TestCase):
         eq_(len(mail.outbox), 0)
 
 
-class TestReviewerScore(amo.tests.TestCase):
+class TestReviewerScore(TestCase):
     fixtures = ['base/users']
 
     def setUp(self):
@@ -634,7 +634,7 @@ class TestReviewerScore(amo.tests.TestCase):
             ReviewerScore.get_breakdown(self.user)
 
 
-class TestRereviewQueueTheme(amo.tests.TestCase):
+class TestRereviewQueueTheme(TestCase):
 
     def test_manager_soft_delete_addons(self):
         """Test manager excludes soft delete add-ons."""

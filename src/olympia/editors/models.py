@@ -10,7 +10,7 @@ from django.utils.datastructures import SortedDict
 import commonware.log
 from tower import ugettext_lazy as _lazy
 
-import amo
+from olympia import amo
 import amo.models
 from access.models import Group
 from amo.helpers import absolutify

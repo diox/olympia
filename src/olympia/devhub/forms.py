@@ -16,7 +16,7 @@ from tower import ugettext as _, ugettext_lazy as _lazy
 from quieter_formset.formset import BaseModelFormSet
 
 from access import acl
-import amo
+from olympia import amo
 import addons.forms
 import paypal
 from addons.models import (Addon, AddonDependency, AddonUser,

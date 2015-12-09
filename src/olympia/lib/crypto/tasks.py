@@ -5,7 +5,7 @@ import shutil
 from django.conf import settings
 from django.db.models import Q
 
-import amo
+from olympia import amo
 from addons.models import AddonUser
 from amo.celery import task
 from files.models import File

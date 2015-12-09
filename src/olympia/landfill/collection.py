@@ -2,7 +2,7 @@ import math
 import random
 from datetime import datetime
 
-import amo
+from olympia import amo
 from amo.utils import slugify
 from bandwagon.models import Collection, CollectionAddon, FeaturedCollection
 
