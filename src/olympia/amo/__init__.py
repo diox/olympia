@@ -5,7 +5,7 @@ import threading
 
 import commonware.log
 
-from olympia.apps.search.utils import floor_version
+from olympia.search.utils import floor_version
 from olympia.constants.applications import *  # noqa
 from olympia.constants.base import *  # noqa
 from olympia.constants.licenses import *  # noqa
