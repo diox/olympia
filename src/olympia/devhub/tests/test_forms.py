@@ -5,12 +5,11 @@ from django.conf import settings
 from django.core.files.storage import default_storage as storage
 
 import mock
-import paypal
 from nose import SkipTest
 from nose.tools import eq_
 from PIL import Image
 
-from olympia import amo
+from olympia import amo, paypal
 from olympia.amo.tests import TestCase
 from olympia.amo.tests.test_helpers import get_image_path
 from olympia.amo.urlresolvers import reverse
