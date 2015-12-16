@@ -6,7 +6,7 @@ won't be tracked in git).
 """
 import os
 
-from lib.settings_base import *  # noqa
+from olympia.lib.settings_base import *  # noqa
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
