@@ -2,10 +2,12 @@ from django.utils import translation
 
 from nose.tools import eq_
 
-from olympia.amo.tests import TestCase
+from olympia import amo
+from olympia.amo.tests import TestCase, ESTestCase
 from olympia.addons.models import Addon
 from olympia.reviews import tasks
-from olympia.reviews.models import check_spam, GroupedRating, Review, ReviewFlag, Spam
+from olympia.reviews.models import (
+    check_spam, GroupedRating, Review, ReviewFlag, Spam)
 from olympia.users.models import UserProfile
 
 

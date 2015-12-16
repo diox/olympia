@@ -12,6 +12,7 @@ from django import forms
 from mock import Mock, patch
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.amo.tests import TestCase
 from olympia.amo.urlresolvers import reverse
 from olympia.files.helpers import FileViewer, DiffHelper

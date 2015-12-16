@@ -1,5 +1,6 @@
 from django.db import models
 
+from olympia import amo
 from olympia.amo.models import ModelBase
 
 

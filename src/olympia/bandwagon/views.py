@@ -21,7 +21,7 @@ from olympia.sharing.views import share as share_view
 from olympia.amo.decorators import (
     allow_mine, json_view, login_required, post_required, restricted_content,
     write)
-from olympia.amo.urlresolverreverse
+from olympia.amo.urlresolvers import reverse
 from olympia.amo.utils import paginate, redirect_for_login, urlparams
 from olympia.access import acl
 from olympia.addons.models import Addon

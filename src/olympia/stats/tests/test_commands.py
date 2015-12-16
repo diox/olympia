@@ -8,13 +8,13 @@ from nose.tools import eq_
 from django.conf import settings
 from django.core import management
 
-import amo.search
+from olympia import amo
 from olympia.amo.tests import TestCase
-from addons.models import Addon, Persona
-from stats.management.commands.download_counts_from_file import is_valid_source
-from stats.management.commands.update_counts_from_file import Command
-from stats.models import DownloadCount, ThemeUpdateCount, UpdateCount
-from zadmin.models import DownloadSource
+from olympia.addons.models import Addon, Persona
+from olympia.stats.management.commands.download_counts_from_file import is_valid_source  # noqa
+from olympia.stats.management.commands.update_counts_from_file import Command
+from olympia.stats.models import DownloadCount, ThemeUpdateCount, UpdateCount
+from olympia.zadmin.models import DownloadSource
 
 
 hive_folder = os.path.join(settings.ROOT, 'apps/stats/fixtures/files')

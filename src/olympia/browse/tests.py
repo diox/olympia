@@ -16,7 +16,7 @@ from pyquery import PyQuery as pq
 from tower import strip_whitespace
 
 from olympia import amo
-from olympia.amo.tests import TestCase
+from olympia.amo.tests import TestCase, ESTestCaseWithAddons
 from amo.urlresolvers import reverse
 from amo.helpers import absolutify, numberfmt, urlparams
 from addons.tests.test_views import TestMobile

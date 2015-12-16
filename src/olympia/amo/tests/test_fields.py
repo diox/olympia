@@ -6,8 +6,8 @@ from django.db import models
 
 from nose.tools import eq_
 
-from olympia import amo
 from olympia.amo.fields import DecimalCharField, SeparatedValuesField
+from olympia.amo.tests import TestCase
 
 
 class DecimalCharFieldModel(models.Model):

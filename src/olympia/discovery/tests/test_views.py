@@ -63,10 +63,11 @@ class TestRecs(TestCase):
                 version=v, application=amo.FIREFOX.id,
                 min_id=self.min_id, max_id=self.max_id)
             addon.update(_current_version=v)
-            addons.signals.version_changed.send(sender=addon)
+            version_changed.send(sender=addon)
+        Addon.objects.update(status=amo.STATUS_PUBLIC, disabled_by_user=False)
 
-    def olympia.test_get(self):
-        """GET olympia.should find method not allowed."""
+    def test_get(self):
+        """GET should find method not allowed."""
         response = self.client.get(self.url)
         eq_(response.status_code, 405)
 

@@ -8,7 +8,7 @@ import mock
 import pytest
 from nose.tools import eq_
 
-from olympia.amo.tests import Test
+from olympia.amo.tests import BaseTestCase, TestCase
 from olympia.amo import decorators, get_user, set_user
 from olympia.amo.urlresolvers import reverse
 from olympia.users.models import UserProfile

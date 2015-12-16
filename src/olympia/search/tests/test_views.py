@@ -13,7 +13,7 @@ from pyquery import PyQuery as pq
 from tower import strip_whitespace
 
 from olympia import amo
-from olympia.amo.tests import TestCase
+from olympia.amo.tests import ESTestCaseWithAddons
 from olympia.amo.helpers import locale_url, numberfmt, urlparams
 from olympia.amo.urlresolvers import reverse
 from olympia.addons.models import (

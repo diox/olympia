@@ -3,7 +3,7 @@ from olympia.amo.tests import TestCase
 from olympia.apps.access.acl import action_allowed_user
 from olympia.apps.users.models import UserProfile
 from olympia.zadmin.management.commands.addusertogroup import do_adduser
-from olympia.zadmin.management.commands.removeuserfromgroup import do_removeuser
+from olympia.zadmin.management.commands.removeuserfromgroup import do_removeuser  # noqa
 
 
 class TestCommand(TestCase):

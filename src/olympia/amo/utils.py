@@ -47,6 +47,7 @@ from html5lib.serializer.htmlserializer import HTMLSerializer
 from jingo import env
 from PIL import Image
 
+from olympia import amo
 from olympia.amo import search
 from olympia.amo import ADDON_ICON_SIZES
 from olympia.amo.urlresolvers import linkify_with_outgoing, reverse

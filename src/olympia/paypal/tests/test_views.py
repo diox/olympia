@@ -8,6 +8,7 @@ from django.core import mail
 from mock import Mock, patch
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.amo.tests import TestCase
 from olympia.addons.models import Addon
 from olympia.amo.urlresolvers import reverse

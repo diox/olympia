@@ -12,7 +12,7 @@ from elasticsearch.helpers import bulk_index
 from oauth2client.client import OAuth2Credentials
 
 from olympia import amo
-from olympia.amo import search
+from olympia.amo import search as amo_search
 from olympia.addons.models import Addon
 from olympia.amo.celery import task
 from olympia.bandwagon.models import Collection
@@ -283,7 +283,7 @@ def _get_metrics_jobs(date=None):
 def index_update_counts(ids, index=None, **kw):
     index = index or search.get_alias()
 
-    es = search.get_es()
+    es = amo_search.get_es()
     qs = UpdateCount.objects.filter(id__in=ids)
     if qs:
         log.info('Indexing %s updates for %s.' % (qs.count(), qs[0].date))
@@ -302,7 +302,7 @@ def index_update_counts(ids, index=None, **kw):
 def index_download_counts(ids, index=None, **kw):
     index = index or search.get_alias()
 
-    es = search.get_es()
+    es = amo_search.get_es()
     qs = DownloadCount.objects.filter(id__in=ids)
     if qs:
         log.info('Indexing %s downloads for %s.' % (qs.count(), qs[0].date))
@@ -321,7 +321,7 @@ def index_download_counts(ids, index=None, **kw):
 def index_collection_counts(ids, index=None, **kw):
     index = index or search.get_alias()
 
-    es = search.get_es()
+    es = amo_search.get_es()
     qs = CollectionCount.objects.filter(collection__in=ids)
     if qs:
         log.info('Indexing %s addon collection counts: %s'
@@ -348,7 +348,7 @@ def index_collection_counts(ids, index=None, **kw):
 def index_theme_user_counts(ids, index=None, **kw):
     index = index or search.get_alias()
 
-    es = search.get_es()
+    es = amo_search.get_es()
     qs = ThemeUserCount.objects.filter(id__in=ids)
 
     if qs:

@@ -6,7 +6,6 @@ import pytest
 from mock import Mock, patch
 from nose.tools import eq_
 
-from olympia import amo
 from olympia.amo.tests import TestCase
 from addons.models import Addon
 from translations import helpers

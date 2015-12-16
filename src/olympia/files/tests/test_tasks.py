@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from django.test.utils import override_settings
 
-from olympia.amo.tests import TestCase
+from olympia import amo
 from olympia.files import tasks
 from olympia.files.models import File
 from olympia.versions.models import Version

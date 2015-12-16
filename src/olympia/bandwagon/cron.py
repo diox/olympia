@@ -11,8 +11,8 @@ from celery.task.sets import TaskSet
 from olympia import amo
 from olympia.amo.celery import task
 from olympia.amo.utils import chunked, slugify
-from olympia.bandwagon.models import (Collection, SyncedCollection, CollectionVote,
-                              CollectionWatcher)
+from olympia.bandwagon.models import (
+    Collection, SyncedCollection, CollectionVote, CollectionWatcher)
 
 task_log = commonware.log.getLogger('z.task')
 

@@ -4,7 +4,6 @@ from nose.tools import eq_, ok_
 from django.utils.encoding import force_unicode
 
 from olympia import amo
-from olympia import amo
 from olympia.amo.tests import TestCase
 from addons.models import Addon
 from editors.forms import get_review_form

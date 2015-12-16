@@ -1,6 +1,5 @@
 from pyquery import PyQuery as pq
 
-from olympia import amo
 from olympia.amo.tests import TestCase
 from olympia.services.pfs import get_output
 

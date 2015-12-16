@@ -4,6 +4,7 @@ import json
 from mock import patch
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.addons.models import Addon
 from olympia.amo.urlresolvers import reverse
 from olympia.amo.tests import TestCase

@@ -24,10 +24,11 @@ from olympia.amo import set_user
 from olympia.amo.helpers import absolutify, user_media_url
 from olympia.amo.signals import _connect, _disconnect
 from olympia.addons.models import (
-    Addon, AddonCategory, AddonDependency, AddonDeviceType, AddonRecommendation,
-    AddonUser, AppSupport, BlacklistedGuid, BlacklistedSlug, Category, Charity,
-    CompatOverride, CompatOverrideRange, FrozenAddon, IncompatibleVersions,
-    Persona, Preview, track_addon_status_change)
+    Addon, AddonCategory, AddonDependency, AddonDeviceType,
+    AddonRecommendation, AddonUser, AppSupport, BlacklistedGuid,
+    BlacklistedSlug, Category, Charity, CompatOverride, CompatOverrideRange,
+    FrozenAddon, IncompatibleVersions, Persona, Preview,
+    track_addon_status_change)
 from olympia.applications.models import AppVersion
 from olympia.bandwagon.models import Collection
 from olympia.constants.applications import DEVICE_TYPES

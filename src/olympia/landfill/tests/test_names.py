@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from nose.tools import eq_, ok_
 
-from olympia import amo
 from olympia.amo.tests import TestCase
 from landfill.names import generate_names
 

@@ -8,7 +8,7 @@ import bleach
 import caching.base as caching
 from tower import ugettext_lazy as _
 
-from olympia.amo.models import ManagerBase
+from olympia.amo.models import ManagerBase, ModelBase
 from olympia.amo import helpers
 from olympia.amo.celery import task
 from olympia.translations.fields import save_signal, TranslatedField

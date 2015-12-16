@@ -12,7 +12,8 @@ from olympia import amo
 from olympia.amo.urlresolvers import reverse
 from olympia.amo.utils import HttpResponseSendFile, urlparams
 from olympia.access import acl
-from olympia.addons.decorators import addon_view_factory, owner_or_unlisted_reviewer
+from olympia.addons.decorators import (
+    addon_view_factory, owner_or_unlisted_reviewer)
 from olympia.addons.models import Addon
 from olympia.files.models import File
 from olympia.versions.models import Version

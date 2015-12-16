@@ -4,7 +4,7 @@ import mock
 from nose.tools import eq_, ok_
 
 from olympia import amo, search
-from olympia.amo.tests import TestCase
+from olympia.amo.tests import TestCase, ESTestCaseWithAddons
 from olympia.addons.models import Addon
 
 

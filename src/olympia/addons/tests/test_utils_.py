@@ -1,7 +1,7 @@
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.addons.utils import get_featured_ids, get_creatured_ids
-
 from olympia.amo.tests import TestCase
 
 

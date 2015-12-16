@@ -13,8 +13,8 @@ from django.db import connection, models, transaction
 import caching.base as caching
 
 from olympia import amo
-from olympia.models import ManagerBase
-from olympia.sharing.utils as sharing
+from olympia.models import ManagerBase, ModelBase
+from olympia.sharing.utils import attach_share_counts
 from olympia.access import acl
 from olympia.addons.models import Addon, AddonRecommendation
 from olympia.amo.helpers import absolutify, user_media_path, user_media_url
@@ -385,8 +385,7 @@ class Collection(CollectionBase, ModelBase):
         for c in collections:
             c.author = authors.get(c.author_id)
         c_dict = dict((c.pk, c) for c in collections)
-        sharing.attach_share_counts(CollectionShareCountTotal, 'collection',
-                                    c_dict)
+        attach_share_counts(CollectionShareCountTotal, 'collection', c_dict)
 
     @staticmethod
     def post_save(sender, instance, **kwargs):

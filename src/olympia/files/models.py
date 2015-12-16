@@ -22,7 +22,7 @@ from django_statsd.clients import statsd
 from uuidfield.fields import UUIDField
 
 from olympia import amo
-from olympia.amo.models import OnChangeMixin, ModelBase
+from olympia.amo.models import OnChangeMixin, ModelBase, UncachedManagerBase
 from olympia.amo.utils import smart_path
 from olympia.amo.decorators import use_master
 from olympia.amo.storage_utils import copy_stored_file, move_stored_file

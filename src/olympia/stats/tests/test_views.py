@@ -10,6 +10,7 @@ import mock
 from nose.tools import eq_
 from pyquery import PyQuery as pq
 
+from olympia import amo
 from olympia.amo.tests import TestCase
 from amo.urlresolvers import reverse
 from access.models import Group, GroupUser

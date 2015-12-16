@@ -2,8 +2,8 @@ import pytest
 from mock import Mock
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.amo import models as amo_models
-from olympia.amo.models import amo_models
 from olympia.amo.tests import TestCase
 from olympia.amo import models as context
 from olympia.addons.models import Addon
@@ -21,7 +21,8 @@ class ManualOrderTest(TestCase):
         in that order."""
 
         semi_arbitrary_order = [40, 5299, 3615]
-        addons = manual_order(Addon.objects.all(), semi_arbitrary_order)
+        addons = amo_models.manual_order(
+            Addon.objects.all(), semi_arbitrary_order)
         eq_(semi_arbitrary_order, [addon.id for addon in addons])
 
 

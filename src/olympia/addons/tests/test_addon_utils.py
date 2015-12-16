@@ -1,5 +1,6 @@
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.amo.tests import TestCase
 from olympia.addons.models import Addon
 from olympia.addons.utils import reverse_name_lookup

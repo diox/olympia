@@ -10,15 +10,15 @@ from pyquery import PyQuery as pq
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-import constants.editors as rvw
-from access.models import GroupUser
-from addons.models import Persona
-from amo.tests import addon_factory, days_ago
-from amo.urlresolvers import reverse
-from devhub.models import ActivityLog, AddonLog
-from editors.models import RereviewQueueTheme, ReviewerScore, ThemeLock
-from editors.views_themes import _get_themes, home, themes_search
-from users.models import UserProfile
+from olympia.constants import editors as rvw
+from olympia.access.models import GroupUser
+from olympia.addons.models import Persona
+from olympia.amo.tests import addon_factory, days_ago
+from olympia.amo.urlresolvers import reverse
+from olympia.devhub.models import ActivityLog, AddonLog
+from olympia.editors.models import RereviewQueueTheme, ReviewerScore, ThemeLock
+from olympia.editors.views_themes import _get_themes, home, themes_search
+from olympia.users.models import UserProfile
 
 
 class ThemeReviewTestMixin(object):

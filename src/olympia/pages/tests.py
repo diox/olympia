@@ -2,7 +2,6 @@ from django.conf import settings
 
 from nose.tools import eq_
 
-from olympia import amo
 from olympia.amo.tests import TestCase
 from amo.urlresolvers import reverse
 

@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db import models
 
 from olympia import amo
-from olympia.amo.models import ManagerBase
+from olympia.amo.models import ModelBase
 from olympia.amo.urlresolvers import reverse
 from olympia.applications.models import AppVersion
 from olympia.files.models import File

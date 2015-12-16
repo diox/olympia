@@ -15,7 +15,7 @@ from olympia.amo.tests import addon_factory, version_factory
 from olympia.devhub import tasks, utils
 from olympia.devhub.tasks import annotate_validation_results
 from olympia.files.models import (
-  File, FileUpload, FileValidation, ValidationAnnotation)
+    File, FileUpload, FileValidation, ValidationAnnotation)
 from olympia.versions.models import Version
 
 

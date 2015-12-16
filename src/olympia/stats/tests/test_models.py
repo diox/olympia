@@ -7,7 +7,6 @@ from django.test.client import RequestFactory
 import phpserialize as php
 from nose.tools import eq_
 
-from olympia import amo
 from olympia.amo.tests import TestCase
 from addons.models import Addon
 from stats.models import ClientData, Contribution

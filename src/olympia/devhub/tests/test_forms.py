@@ -12,19 +12,19 @@ from PIL import Image
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.tests.test_helpers import get_image_path
-from amo.urlresolvers import reverse
-from amo.helpers import user_media_path
-from applications.models import AppVersion
-from addons.forms import EditThemeForm, EditThemeOwnerForm, ThemeForm
-from addons.models import Addon, Category, Charity, Persona
-from devhub import forms
-from editors.models import RereviewQueueTheme
-from files.helpers import copyfileobj
-from files.models import FileUpload
-from tags.models import Tag
-from users.models import UserProfile
-from versions.models import ApplicationsVersions, License, Version
+from olympia.amo.tests.test_helpers import get_image_path
+from olympia.amo.urlresolvers import reverse
+from olympia.amo.helpers import user_media_path
+from olympia.applications.models import AppVersion
+from olympia.addons.forms import EditThemeForm, EditThemeOwnerForm, ThemeForm
+from olympia.addons.models import Addon, Category, Charity, Persona
+from olympia.devhub import forms
+from olympia.editors.models import RereviewQueueTheme
+from olympia.files.helpers import copyfileobj
+from olympia.files.models import FileUpload
+from olympia.tags.models import Tag
+from olympia.users.models import UserProfile
+from olympia.versions.models import ApplicationsVersions, License, Version
 
 
 class TestNewAddonForm(TestCase):

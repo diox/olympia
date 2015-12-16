@@ -23,20 +23,20 @@ from caching.base import cached_with
 from piston.utils import rc
 from tower import ugettext as _, ugettext_lazy
 
-from olympia import amo
-import api
-from addons.models import Addon, CompatOverride
-from amo.decorators import post_required, allow_cross_site_request, json_view
-from amo.models import manual_order
-from amo.urlresolvers import get_url_prefix
-from amo.utils import JSONEncoder
-from api.authentication import AMOOAuthAuthentication
-from api.forms import PerformanceForm
-from api.utils import addon_to_dict, extract_filters
-from perf.models import (Performance, PerformanceAppVersions,
-                         PerformanceOSVersion)
-from search.views import (AddonSuggestionsAjax, PersonaSuggestionsAjax,
-                          name_query)
+from olympia import amo, api
+from olympia.addons.models import Addon, CompatOverride
+from olympia.amo.decorators import (
+    post_required, allow_cross_site_request, json_view)
+from olympia.amo.models import manual_order
+from olympia.amo.urlresolvers import get_url_prefix
+from olympia.amo.utils import JSONEncoder
+from olympia.api.authentication import AMOOAuthAuthentication
+from olympia.api.forms import PerformanceForm
+from olympia.api.utils import addon_to_dict, extract_filters
+from olympia.perf.models import (
+    Performance, PerformanceAppVersions, PerformanceOSVersion)
+from search.views import (
+    AddonSuggestionsAjax, PersonaSuggestionsAjax, name_query)
 from versions.compare import version_int
 
 

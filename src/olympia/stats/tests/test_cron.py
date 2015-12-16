@@ -6,6 +6,7 @@ from django.core.management import call_command
 import mock
 from nose.tools import eq_
 
+from olympia import amo
 from olympia.amo.tests import TestCase
 from olympia.addons.models import Addon
 from olympia.bandwagon.models import Collection, CollectionAddon

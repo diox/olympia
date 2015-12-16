@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.management import call_command
 
 from olympia import amo
-from olympia.amo import search
 from olympia.applications.models import AppVersion
 from olympia.lib.es.utils import create_index
 from olympia.stats.models import (

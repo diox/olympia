@@ -3,13 +3,13 @@ import logging
 from django.conf import settings
 from django.db import models
 
-import amo.models
+from amo.models import ModelBase
 
 
 log = logging.getLogger('z.perf')
 
 
-class PerformanceAppVersions(amo.models.ModelBase):
+class PerformanceAppVersions(ModelBase):
     """
     Add-on performance appversions.  This table is pretty much the same as
     `appversions` but is separate because we need to push the perf stuff now
@@ -28,7 +28,7 @@ class PerformanceAppVersions(amo.models.ModelBase):
         ordering = ('-id',)
 
 
-class PerformanceOSVersion(amo.models.ModelBase):
+class PerformanceOSVersion(ModelBase):
     os = models.CharField(max_length=255)
     version = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
@@ -42,7 +42,7 @@ class PerformanceOSVersion(amo.models.ModelBase):
         return self.name or '%s %s' % (self.os, self.version)
 
 
-class Performance(amo.models.ModelBase):
+class Performance(ModelBase):
     """Add-on performance numbers.  A bit denormalized."""
     # Cache storage for all platform perf numbers.
     ALL_PLATFORMS = 'perf:platforms'

@@ -17,7 +17,8 @@ from olympia import amo
 from olympia.access import acl
 from olympia.amo.fields import ColorField
 from olympia.amo.urlresolvers import reverse
-from olympia.amo.utils import slug_validator, slugify, sorted_groupby, remove_icons
+from olympia.amo.utils import (
+    slug_validator, slugify, sorted_groupby, remove_icons)
 from olympia.addons.models import (
     Addon, AddonCategory, BlacklistedSlug, Category, Persona)
 from olympia.addons.tasks import save_theme, save_theme_reupload
@@ -37,9 +38,9 @@ from olympia.versions.models import Version
 log = commonware.log.getLogger('z.addons')
 
 
-def clean_name(name, instance=None, addon_type=None):
+def clean_addon_name(name, instance=None, addon_type=None):
     if not instance:
-        log.debug('clean_name called without an instance: %s' % name)
+        log.debug('clean_addon_name called without an instance: %s' % name)
 
     # We don't need to do anything to prevent an unlisted addon name from
     # clashing with listed addons, because the `reverse_name_lookup` util below
@@ -60,7 +61,7 @@ def clean_name(name, instance=None, addon_type=None):
     return name
 
 
-def clean_slug(slug, instance):
+def clean_addon_slug(slug, instance):
     slug_validator(slug, lower=False)
 
     if slug != instance.slug:
@@ -135,7 +136,7 @@ class AddonFormBase(TranslationFormMixin, happyforms.ModelForm):
         fields = ('name', 'slug', 'summary', 'tags')
 
     def clean_slug(self):
-        return clean_slug(self.cleaned_data['slug'], self.instance)
+        return clean_addon_slug(self.cleaned_data['slug'], self.instance)
 
     def clean_tags(self):
         return clean_tags(self.request, self.cleaned_data['tags'])
@@ -167,7 +168,7 @@ class AddonFormBasic(AddonFormBase):
         # Do not simply append validators, as validators will persist between
         # instances.
         def validate_name(name):
-            return clean_name(name, self.instance)
+            return clean_addon_name(name, self.instance)
 
         name_validators = list(self.fields['name'].validators)
         name_validators.append(validate_name)
@@ -416,7 +417,8 @@ class AddonForm(happyforms.ModelForm):
         exclude = ('status', )
 
     def clean_name(self):
-        return clean_name(self.cleaned_data['name'], instance=self.instance)
+        return clean_addon_name(
+            self.cleaned_data['name'], instance=self.instance)
 
     def save(self):
         desc = self.data.get('description')
@@ -459,11 +461,11 @@ class ThemeFormBase(AddonFormBase):
             }
 
     def clean_name(self):
-        return clean_name(self.cleaned_data['name'],
-                          addon_type=amo.ADDON_PERSONA)
+        return clean_addon_name(
+            self.cleaned_data['name'], addon_type=amo.ADDON_PERSONA)
 
     def clean_slug(self):
-        return clean_slug(self.cleaned_data['slug'], self.instance)
+        return clean_addon_slug(self.cleaned_data['slug'], self.instance)
 
 
 class ThemeForm(ThemeFormBase):
@@ -592,7 +594,8 @@ class EditThemeForm(AddonFormBase):
         # Do not simply append validators, as validators will persist between
         # instances.
         self.fields['name'].validators = list(self.fields['name'].validators)
-        self.fields['name'].validators.append(lambda x: clean_name(x, addon))
+        self.fields['name'].validators.append(
+            lambda x: clean_addon_name(x, addon))
 
         # Allow theme artists to localize Name and Description.
         for trans in Translation.objects.filter(id=self.initial['name']):

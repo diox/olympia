@@ -18,7 +18,8 @@ from olympia import amo
 from olympia.addons.models import Addon
 from olympia.amo.urlresolvers import reverse
 from olympia.applications.models import AppVersion
-from olympia.bandwagon.models import Collection, FeaturedCollection, MonthlyPick
+from olympia.bandwagon.models import (
+    Collection, FeaturedCollection, MonthlyPick)
 from olympia.compat.forms import CompatForm as BaseCompatForm
 from olympia.files.models import File
 from olympia.zadmin.models import SiteEvent, ValidationJob

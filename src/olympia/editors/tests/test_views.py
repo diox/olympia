@@ -16,21 +16,20 @@ from mock import Mock, patch
 from nose.tools import eq_
 from pyquery import PyQuery as pq
 
-from olympia import amo
+from olympia import amo, reviews
 from olympia.amo.tests import TestCase
-import reviews
-from abuse.models import AbuseReport
-from access.models import Group, GroupUser
-from addons.models import Addon, AddonDependency, AddonUser
-from amo.tests import check_links, formset, initial
-from amo.urlresolvers import reverse
-from devhub.models import ActivityLog
-from editors.models import EditorSubscription, ReviewerScore
-from files.models import File, FileValidation
-from reviews.models import Review, ReviewFlag
-from users.models import UserProfile
-from versions.models import ApplicationsVersions, AppVersion, Version
-from zadmin.models import get_config, set_config
+from olympia.abuse.models import AbuseReport
+from olympia.access.models import Group, GroupUser
+from olympia.addons.models import Addon, AddonDependency, AddonUser
+from olympia.amo.tests import check_links, formset, initial
+from olympia.amo.urlresolvers import reverse
+from olympia.devhub.models import ActivityLog
+from olympia.editors.models import EditorSubscription, ReviewerScore
+from olympia.files.models import File, FileValidation
+from olympia.reviews.models import Review, ReviewFlag
+from olympia.users.models import UserProfile
+from olympia.versions.models import ApplicationsVersions, AppVersion, Version
+from olympia.zadmin.models import get_config, set_config
 
 from .test_models import create_addon_file
 

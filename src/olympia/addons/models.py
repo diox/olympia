@@ -24,7 +24,8 @@ from jinja2.filters import do_dictsort
 from tower import ugettext_lazy as _
 
 from olympia import amo
-from olympia.amo.models import SlugField, OnChangeMixin, ManagerBase, manual_order
+from olympia.amo.models import (
+    SlugField, OnChangeMixin, ModelBase, ManagerBase, manual_order)
 from olympia.access import acl
 from olympia.addons.utils import get_creatured_ids, get_featured_ids
 from olympia.amo import helpers
@@ -1939,7 +1940,7 @@ class BlacklistedGuid(ModelBase):
 class Category(OnChangeMixin, ModelBase):
     name = TranslatedField()
     slug = SlugField(max_length=50,
-                                help_text='Used in Category URLs.')
+                     help_text='Used in Category URLs.')
     type = models.PositiveIntegerField(db_column='addontype_id',
                                        choices=do_dictsort(amo.ADDON_TYPE))
     application = models.PositiveIntegerField(choices=amo.APPS_CHOICES,

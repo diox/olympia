@@ -35,7 +35,8 @@ from olympia.files.models import File
 from olympia.files.tests.test_models import UploadTest
 from olympia.users.models import UserProfile
 from olympia.versions import feeds, views
-from olympia.versions.models import Version, ApplicationsVersions, source_upload_path
+from olympia.versions.models import (
+    Version, ApplicationsVersions, source_upload_path)
 from olympia.versions.compare import (
     MAXVERSION, version_int, dict_from_int, version_dict)
 

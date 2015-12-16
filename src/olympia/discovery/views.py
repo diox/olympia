@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 import commonware.log
 import waffle
 
-from olympia import amo
+from olympia import amo, api
 from olympia.amo.utils import JSONEncoder
 from olympia.api import views as api_views
 from olympia.amo.decorators import post_required
