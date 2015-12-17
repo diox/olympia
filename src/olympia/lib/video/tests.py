@@ -11,12 +11,12 @@ from django.conf import settings
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.tests.test_helpers import get_image_path
-from devhub.models import UserLog
-from lib.video import get_library
-from lib.video import ffmpeg, totem
-from lib.video.tasks import resize_video
-from users.models import UserProfile
+from olympia.amo.tests.test_helpers import get_image_path
+from olympia.devhub.models import UserLog
+from olympia.lib.video import get_library
+from olympia.lib.video import ffmpeg, totem
+from olympia.lib.video.tasks import resize_video
+from olympia.users.models import UserProfile
 
 
 pytestmark = pytest.mark.django_db

@@ -11,15 +11,15 @@ from pyquery import PyQuery as pq
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from addons.models import Addon
-from amo.urlresolvers import reverse
-from devhub.models import ActivityLog
-from editors import helpers
-from editors.models import ReviewerScore
-from files.models import File
-from translations.models import Translation
-from users.models import UserProfile
-from versions.models import Version
+from olympia.addons.models import Addon
+from olympia.amo.urlresolvers import reverse
+from olympia.devhub.models import ActivityLog
+from olympia.editors import helpers
+from olympia.editors.models import ReviewerScore
+from olympia.files.models import File
+from olympia.translations.models import Translation
+from olympia.users.models import UserProfile
+from olympia.versions.models import Version
 
 from . test_models import create_addon_file
 

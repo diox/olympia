@@ -13,9 +13,9 @@ import pytest
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from files.utils import extract_xpi
-from lib.crypto import packaged, tasks
-from versions.compare import version_int
+from olympia.files.utils import extract_xpi
+from olympia.lib.crypto import packaged, tasks
+from olympia.versions.compare import version_int
 
 
 @override_settings(SIGNING_SERVER='http://full',

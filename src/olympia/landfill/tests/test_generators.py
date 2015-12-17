@@ -4,11 +4,11 @@ from nose.tools import eq_, ok_
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from addons.models import Addon, Persona
-from constants.applications import APPS
-from landfill.categories import addons_categories, themes_categories
-from landfill.generators import _yield_name_and_cat, create_addon, create_theme
-from versions.models import Version
+from olympia.addons.models import Addon, Persona
+from olympia.constants.applications import APPS
+from olympia.landfill.categories import addons_categories, themes_categories
+from olympia.landfill.generators import _yield_name_and_cat, create_addon, create_theme
+from olympia.versions.models import Version
 
 
 class _BaseAddonGeneratorMixin(object):

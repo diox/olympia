@@ -7,11 +7,11 @@ from mock import Mock, patch
 from nose.tools import eq_
 
 from olympia.amo.tests import TestCase
-from addons.models import Addon
-from translations import helpers
-from translations.fields import save_signal
-from translations.models import PurifiedTranslation
-from translations.tests.testapp.models import TranslatedModel
+from olympia.addons.models import Addon
+from olympia.translations import helpers
+from olympia.translations.fields import save_signal
+from olympia.translations.models import PurifiedTranslation
+from olympia.translations.tests.testapp.models import TranslatedModel
 
 
 pytestmark = pytest.mark.django_db

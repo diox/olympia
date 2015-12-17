@@ -3,12 +3,12 @@ from nose.tools import eq_
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from addons.models import Addon
-from applications.models import AppVersion
-from constants.applications import APPS
-from files.models import File
-from landfill.version import generate_version
-from versions.models import ApplicationsVersions, Version
+from olympia.addons.models import Addon
+from olympia.applications.models import AppVersion
+from olympia.constants.applications import APPS
+from olympia.files.models import File
+from olympia.landfill.version import generate_version
+from olympia.versions.models import ApplicationsVersions, Version
 
 
 class VersionsTests(TestCase):

@@ -4,7 +4,7 @@ from nose.tools import eq_
 from pyquery import PyQuery as pq
 
 from olympia import amo
-from amo.urlresolvers import reverse
+from olympia.amo.urlresolvers import reverse
 from olympia.devhub.models import RssKey
 from olympia.devhub.tests.test_views import HubTest
 from olympia.bandwagon.models import Collection

@@ -17,12 +17,10 @@ from olympia.addons.models import Addon
 from olympia.amo.helpers import absolutify, breadcrumbs, page_title
 from olympia.amo.urlresolvers import reverse
 from olympia.amo.utils import send_mail as amo_send_mail
-from editors.models import (ReviewerScore, ViewFastTrackQueue,
-                            ViewFullReviewQueue, ViewPendingQueue,
-                            ViewPreliminaryQueue,
-                            ViewUnlistedFullReviewQueue,
-                            ViewUnlistedPendingQueue,
-                            ViewUnlistedPreliminaryQueue)
+from olympia.editors.models import (
+    ReviewerScore, ViewFastTrackQueue, ViewFullReviewQueue, ViewPendingQueue,
+    ViewPreliminaryQueue, ViewUnlistedFullReviewQueue,
+    ViewUnlistedPendingQueue, ViewUnlistedPreliminaryQueue)
 from olympia.editors.sql_table import SQLTable
 from olympia.lib.crypto.packaged import sign_file
 from olympia.users.models import UserProfile

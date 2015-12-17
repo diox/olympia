@@ -2,7 +2,7 @@
 from nose.tools import eq_, ok_
 
 from olympia.amo.tests import TestCase
-from landfill.names import generate_names
+from olympia.landfill.names import generate_names
 
 
 class NamesTests(TestCase):

@@ -7,9 +7,9 @@ from pyquery import PyQuery as pq
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.urlresolvers import reverse
-from amo.utils import urlparams
-from addons.models import Category
+from olympia.amo.urlresolvers import reverse
+from olympia.amo.utils import urlparams
+from olympia.addons.models import Category
 
 
 class TestDecorators(TestCase):

@@ -2,7 +2,7 @@ from pyquery import PyQuery as pq
 from nose.tools import eq_
 
 from olympia.amo.tests import TestCase
-from translations import models, widgets
+from olympia.translations import models, widgets
 
 
 class TestWidget(TestCase):

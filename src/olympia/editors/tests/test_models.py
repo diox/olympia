@@ -8,19 +8,18 @@ from nose.tools import eq_
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.tests import addon_factory
-from addons.models import Addon
-from versions.models import Version, version_uploaded, ApplicationsVersions
-from files.models import File
-from applications.models import AppVersion
-from editors.models import (EditorSubscription, RereviewQueueTheme,
-                            ReviewerScore, send_notifications,
-                            ViewFastTrackQueue, ViewFullReviewQueue,
-                            ViewPendingQueue, ViewPreliminaryQueue,
-                            ViewUnlistedFullReviewQueue,
-                            ViewUnlistedPendingQueue,
-                            ViewUnlistedPreliminaryQueue)
-from users.models import UserProfile
+from olympia.amo.tests import addon_factory
+from olympia.addons.models import Addon
+from olympia.versions.models import (
+    Version, version_uploaded, ApplicationsVersions)
+from olympia.files.models import File
+from olympia.applications.models import AppVersion
+from olympia.editors.models import (
+    EditorSubscription, RereviewQueueTheme, ReviewerScore, send_notifications,
+    ViewFastTrackQueue, ViewFullReviewQueue, ViewPendingQueue,
+    ViewPreliminaryQueue, ViewUnlistedFullReviewQueue,
+    ViewUnlistedPendingQueue, ViewUnlistedPreliminaryQueue)
+from olympia.users.models import UserProfile
 
 
 def create_addon_file(name, version_str, addon_status, file_status,

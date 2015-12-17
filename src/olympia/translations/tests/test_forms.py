@@ -4,8 +4,8 @@ from nose.tools import eq_
 from django.forms import ModelForm
 
 from olympia.amo.tests import TestCase
-from translations import forms, fields
-from translations.tests.testapp.models import TranslatedModel
+from olympia.translations import forms, fields
+from olympia.translations.tests.testapp.models import TranslatedModel
 
 
 class TestForm(forms.TranslationFormMixin, ModelForm):

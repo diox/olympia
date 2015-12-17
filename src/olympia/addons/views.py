@@ -22,7 +22,7 @@ import session_csrf
 from tower import ugettext as _, ugettext_lazy as _lazy
 from mobility.decorators import mobilized, mobile_template
 
-from olympia.olympia import amo
+from olympia import amo
 from olympia.amo import messages
 from olympia.amo.decorators import post_required
 from olympia.amo.forms import AbuseForm

@@ -3,8 +3,8 @@ from nose.tools import eq_
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from addons.models import Addon, Review
-from landfill.ratings import generate_ratings
+from olympia.addons.models import Addon, Review
+from olympia.landfill.ratings import generate_ratings
 
 
 class RatingsTests(TestCase):

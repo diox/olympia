@@ -4,10 +4,10 @@ from django.conf import settings
 
 from nose.tools import eq_
 from heka.config import client_from_dict_config
+import commonware.log
 
 from olympia.amo.tests import TestCase
-import commonware.log
-from lib.log_settings_base import error_fmt
+from olympia.lib.log_settings_base import error_fmt
 
 
 cfg = {

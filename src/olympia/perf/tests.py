@@ -4,8 +4,8 @@ from mock import patch
 from nose.tools import eq_
 
 from olympia.amo.tests import TestCase
-from perf.models import Performance
-from addons.models import Addon
+from olympia.perf.models import Performance
+from olympia.addons.models import Addon
 
 
 class TestModels(TestCase):

@@ -5,11 +5,11 @@ from django.utils.encoding import force_unicode
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from addons.models import Addon
-from editors.forms import get_review_form
-from editors.helpers import NOMINATED_STATUSES
-from editors.models import CannedResponse
-from users.models import UserProfile
+from olympia.addons.models import Addon
+from olympia.editors.forms import get_review_form
+from olympia.editors.helpers import NOMINATED_STATUSES
+from olympia.editors.models import CannedResponse
+from olympia.users.models import UserProfile
 
 
 class TestReviewActions(TestCase):

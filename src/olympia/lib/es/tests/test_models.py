@@ -2,7 +2,7 @@ import mock
 from nose.tools import eq_
 
 from olympia.amo.tests import TestCase
-from lib.es.models import Reindexing
+from olympia.lib.es.models import Reindexing
 
 
 class TestReindexManager(TestCase):

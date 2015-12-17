@@ -3,8 +3,9 @@ import random
 from datetime import datetime
 
 from olympia import amo
-from amo.utils import slugify
-from bandwagon.models import Collection, CollectionAddon, FeaturedCollection
+from olympia.amo.utils import slugify
+from olympia.bandwagon.models import (
+    Collection, CollectionAddon, FeaturedCollection)
 
 from .translations import generate_translations
 

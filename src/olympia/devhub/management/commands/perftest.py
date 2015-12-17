@@ -2,8 +2,8 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 
-from devhub.perf import start_perf_test
-from files.models import File
+from olympia.devhub.perf import start_perf_test
+from olympia.files.models import File
 
 
 class Command(BaseCommand):

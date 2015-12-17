@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.db import models
 
-from amo.models import ModelBase
+from olympia.amo.models import ModelBase
 
 
 log = logging.getLogger('z.perf')
