@@ -13,8 +13,8 @@ docs/api/_build
 lib/product_json/.gitignore
 lib/product_json/*.json
 lib/product_json/.last_update
-lib/product_json/regions/*.json
-lib/product_json/regions/.last_update
+lib/product_json/.*.last_modified
+lib/product_json/regions
 build*.py
 media/build_id.txt
 media/manifest.appcache
