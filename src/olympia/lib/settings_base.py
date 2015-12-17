@@ -297,7 +297,7 @@ def JINJA_CONFIG():
     import jinja2
     from django.conf import settings
     from django.core.cache import cache
-    config = {'extensions': ['tower.template.i18n', 'amo.ext.cache',
+    config = {'extensions': ['tower.template.i18n', 'olympia.amo.ext.cache',
                              'jinja2.ext.do',
                              'jinja2.ext.with_', 'jinja2.ext.loopcontrols'],
               'finalize': lambda x: x if x is not None else ''}
