@@ -8,11 +8,11 @@ import phpserialize as php
 from nose.tools import eq_
 
 from olympia.amo.tests import TestCase
-from addons.models import Addon
-from stats.models import ClientData, Contribution
-from stats.db import StatsDictField
-from users.models import UserProfile
-from zadmin.models import DownloadSource
+from olympia.addons.models import Addon
+from olympia.stats.models import ClientData, Contribution
+from olympia.stats.db import StatsDictField
+from olympia.users.models import UserProfile
+from olympia.zadmin.models import DownloadSource
 
 
 class TestStatsDictField(TestCase):

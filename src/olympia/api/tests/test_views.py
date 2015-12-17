@@ -13,7 +13,7 @@ from nose.tools import eq_
 from pyquery import PyQuery as pq
 
 from olympia import amo, api
-from addons.models import (
+from olympia.addons.models import (
     Addon, AppSupport, CompatOverride, CompatOverrideRange, Persona, Preview)
 from olympia.amo import helpers
 from olympia.amo.helpers import absolutify

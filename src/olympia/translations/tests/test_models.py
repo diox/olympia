@@ -18,7 +18,8 @@ from nose.tools import eq_
 from pyquery import PyQuery as pq
 
 from olympia.amo.tests import BaseTestCase
-from olympia.testapp.models import TranslatedModel, UntranslatedModel, FancyModel
+from olympia.testapp.models import (
+    TranslatedModel, UntranslatedModel, FancyModel)
 from olympia.translations import widgets
 from olympia.translations.query import order_by_translation
 from olympia.translations.models import (

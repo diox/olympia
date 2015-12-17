@@ -11,7 +11,8 @@ from tower import ugettext as _
 from olympia import amo
 from olympia.access.models import Group
 from olympia.addons.models import Category
-from olympia.amo.decorators import json_view, login_required, post_required, write
+from olympia.amo.decorators import (
+    json_view, login_required, post_required, write)
 from olympia.amo.urlresolvers import reverse
 from olympia.amo.utils import no_translation
 from olympia.translations.models import Translation

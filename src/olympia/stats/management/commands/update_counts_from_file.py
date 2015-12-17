@@ -11,8 +11,8 @@ from django.core.management.base import BaseCommand, CommandError
 import commonware.log
 
 from olympia import amo
-from addons.models import Addon
-from stats.models import update_inc, UpdateCount
+from olympia.addons.models import Addon
+from olympia.stats.models import update_inc, UpdateCount
 
 from . import get_date_from_file
 

@@ -11,6 +11,7 @@ import jingo
 import mock
 import pytest
 from nose.tools import eq_, assert_raises, raises
+from product_details import product_details
 
 from olympia.amo.tests import BaseTestCase
 from olympia.amo.utils import (
@@ -18,7 +19,6 @@ from olympia.amo.utils import (
     LocalFileStorage, no_jinja_autoescape, no_translation,
     resize_image, rm_local_tmp_dir, slugify, slug_validator,
     to_language)
-from olympia.product_details import product_details
 
 
 pytestmark = pytest.mark.django_db

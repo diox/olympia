@@ -17,20 +17,21 @@ from tower import strip_whitespace
 
 from olympia import amo
 from olympia.amo.tests import TestCase, ESTestCaseWithAddons
-from amo.urlresolvers import reverse
-from amo.helpers import absolutify, numberfmt, urlparams
-from addons.tests.test_views import TestMobile
-from addons.models import (Addon, AddonCategory, Category, AppSupport,
-                           FrozenAddon, Persona)
-from bandwagon.models import Collection, CollectionAddon, FeaturedCollection
-from browse import feeds
-from browse.views import (AddonFilter, locale_display_name,
-                          MIN_COUNT_FOR_LANDING, PAGINATE_PERSONAS_BY,
-                          ThemeFilter)
-from constants.applications import THUNDERBIRD
-from translations.models import Translation
-from users.models import UserProfile
-from versions.models import Version
+from olympia.amo.urlresolvers import reverse
+from olympia.amo.helpers import absolutify, numberfmt, urlparams
+from olympia.addons.tests.test_views import TestMobile
+from olympia.addons.models import (
+    Addon, AddonCategory, Category, AppSupport, FrozenAddon, Persona)
+from olympia.bandwagon.models import (
+    Collection, CollectionAddon, FeaturedCollection)
+from olympia.browse import feeds
+from olympia.browse.views import (
+    AddonFilter, locale_display_name, MIN_COUNT_FOR_LANDING,
+    PAGINATE_PERSONAS_BY, ThemeFilter)
+from olympia.constants.applications import THUNDERBIRD
+from olympia.translations.models import Translation
+from olympia.users.models import UserProfile
+from olympia.versions.models import Version
 
 
 pytestmark = pytest.mark.django_db

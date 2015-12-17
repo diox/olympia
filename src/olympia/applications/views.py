@@ -5,7 +5,8 @@ import caching.base as caching
 from tower import ugettext as _
 
 from olympia import amo
-from amo.helpers import url, absolutify
+from olympia.amo.helpers import url, absolutify
+
 from .models import AppVersion
 
 

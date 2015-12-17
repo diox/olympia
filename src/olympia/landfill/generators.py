@@ -8,7 +8,8 @@ from django.db.models.signals import post_save
 from olympia.amo.utils import slugify
 from olympia.addons.models import Addon, Persona, update_search_index
 from olympia.constants.applications import APPS
-from olympia.constants.base import ADDON_EXTENSION, ADDON_PERSONA, STATUS_PUBLIC
+from olympia.constants.base import (
+    ADDON_EXTENSION, ADDON_PERSONA, STATUS_PUBLIC)
 
 from .categories import generate_categories
 from .collection import generate_collection

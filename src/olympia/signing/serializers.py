@@ -5,8 +5,8 @@ from django.core.urlresolvers import reverse
 from rest_framework import serializers
 
 from olympia import amo
-from amo.helpers import absolutify
-from files.models import FileUpload
+from olympia.amo.helpers import absolutify
+from olympia.files.models import FileUpload
 
 
 class FileUploadSerializer(serializers.ModelSerializer):

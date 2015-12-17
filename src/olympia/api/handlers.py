@@ -9,14 +9,14 @@ from piston.utils import rc
 from tower import ugettext as _
 
 from olympia import amo
-from access import acl
-from addons.forms import AddonForm
-from addons.models import Addon, AddonUser
-from amo.utils import paginate
-from devhub.forms import LicenseForm
-from users.models import UserProfile
-from versions.forms import XPIForm
-from versions.models import Version, ApplicationsVersions
+from olympia.access import acl
+from olympia.addons.forms import AddonForm
+from olympia.addons.models import Addon, AddonUser
+from olympia.amo.utils import paginate
+from olympia.devhub.forms import LicenseForm
+from olympia.users.models import UserProfile
+from olympia.versions.forms import XPIForm
+from olympia.versions.models import Version, ApplicationsVersions
 
 log = commonware.log.getLogger('z.api')
 

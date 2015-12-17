@@ -37,18 +37,18 @@ from nose.tools import eq_
 from piston.models import Consumer
 
 from olympia import amo
-from amo.helpers import absolutify
-from amo.tests import TestCase
-from amo.urlresolvers import reverse
-from api.authentication import AMOOAuthAuthentication
-from addons.models import Addon, AddonUser, BlacklistedGuid
-from devhub.models import ActivityLog, SubmitStep
-from files.models import File
-from perf.models import (Performance, PerformanceAppVersions,
-                         PerformanceOSVersion)
-from translations.models import Translation
-from users.models import UserProfile
-from versions.models import AppVersion, Version
+from olympia.amo.helpers import absolutify
+from olympia.amo.tests import TestCase
+from olympia.amo.urlresolvers import reverse
+from olympia.api.authentication import AMOOAuthAuthentication
+from olympia.addons.models import Addon, AddonUser, BlacklistedGuid
+from olympia.devhub.models import ActivityLog, SubmitStep
+from olympia.files.models import File
+from olympia.perf.models import (
+    Performance, PerformanceAppVersions, PerformanceOSVersion)
+from olympia.translations.models import Translation
+from olympia.users.models import UserProfile
+from olympia.versions.models import AppVersion, Version
 
 
 def _get_args(consumer, token=None, callback=False, verifier=None):

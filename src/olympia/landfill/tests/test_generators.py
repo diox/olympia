@@ -7,7 +7,8 @@ from olympia.amo.tests import TestCase
 from olympia.addons.models import Addon, Persona
 from olympia.constants.applications import APPS
 from olympia.landfill.categories import addons_categories, themes_categories
-from olympia.landfill.generators import _yield_name_and_cat, create_addon, create_theme
+from olympia.landfill.generators import (
+    _yield_name_and_cat, create_addon, create_theme)
 from olympia.versions.models import Version
 
 

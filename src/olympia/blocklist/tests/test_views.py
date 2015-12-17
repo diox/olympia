@@ -10,10 +10,10 @@ from nose.tools import eq_, ok_
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.urlresolvers import reverse
-from blocklist.models import (BlocklistApp, BlocklistCA, BlocklistDetail,
-                              BlocklistGfx, BlocklistItem, BlocklistIssuerCert,
-                              BlocklistPlugin, BlocklistPref)
+from olympia.amo.urlresolvers import reverse
+from olympia.blocklist.models import (
+    BlocklistApp, BlocklistCA, BlocklistDetail, BlocklistGfx, BlocklistItem,
+    BlocklistIssuerCert, BlocklistPlugin, BlocklistPref)
 
 base_xml = """
 <?xml version="1.0"?>

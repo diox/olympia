@@ -4,9 +4,9 @@ from django.shortcuts import get_object_or_404
 from tower import ugettext as _
 
 from olympia import amo
-from amo.urlresolvers import reverse
-from amo.helpers import absolutify, url, page_name
-from addons.models import Addon, Category
+from olympia.amo.urlresolvers import reverse
+from olympia.amo.helpers import absolutify, url, page_name
+from olympia.addons.models import Addon, Category
 from .views import addon_listing, SearchToolsFilter
 
 

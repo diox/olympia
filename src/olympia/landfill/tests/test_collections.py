@@ -4,7 +4,8 @@ from nose.tools import eq_, ok_
 from olympia import amo
 from olympia.amo.tests import TestCase
 from olympia.addons.models import Addon
-from olympia.bandwagon.models import Collection, CollectionAddon, FeaturedCollection
+from olympia.bandwagon.models import (
+    Collection, CollectionAddon, FeaturedCollection)
 from olympia.constants.applications import APPS
 from olympia.landfill.collection import generate_collection
 

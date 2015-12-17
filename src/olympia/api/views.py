@@ -35,9 +35,9 @@ from olympia.api.forms import PerformanceForm
 from olympia.api.utils import addon_to_dict, extract_filters
 from olympia.perf.models import (
     Performance, PerformanceAppVersions, PerformanceOSVersion)
-from search.views import (
+from olympia.search.views import (
     AddonSuggestionsAjax, PersonaSuggestionsAjax, name_query)
-from versions.compare import version_int
+from olympia.versions.compare import version_int
 
 
 ERROR = 'error'

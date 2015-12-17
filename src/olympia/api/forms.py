@@ -2,8 +2,8 @@ from django import forms
 
 import happyforms
 
-from addons.models import Addon
-from api.handlers import _form_error
+from olympia.addons.models import Addon
+from olympia.api.handlers import _form_error
 
 OS = ['WINNT', 'Darwin', 'Linux']
 PLATFORMS = ['x86', 'x86_64']

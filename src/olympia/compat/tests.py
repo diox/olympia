@@ -6,9 +6,9 @@ from pyquery import PyQuery as pq
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.urlresolvers import reverse
-from addons.models import Addon
-from compat.models import CompatReport, CompatTotals
+from olympia.amo.urlresolvers import reverse
+from olympia.addons.models import Addon
+from olympia.compat.models import CompatReport, CompatTotals
 
 
 # This is the structure sent to /compatibility/incoming from the ACR.

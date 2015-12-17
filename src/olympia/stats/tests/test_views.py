@@ -12,15 +12,15 @@ from pyquery import PyQuery as pq
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.urlresolvers import reverse
-from access.models import Group, GroupUser
-from addons.models import Addon
-from bandwagon.models import Collection
-from stats import views, tasks
-from stats import search
-from stats.models import (CollectionCount, DownloadCount, GlobalStat,
-                          ThemeUserCount, UpdateCount)
-from users.models import UserProfile
+from olympia.amo.urlresolvers import reverse
+from olympia.access.models import Group, GroupUser
+from olympia.addons.models import Addon
+from olympia.bandwagon.models import Collection
+from olympia.stats import views, tasks
+from olympia.stats import search
+from olympia.stats.models import (
+    CollectionCount, DownloadCount, GlobalStat, ThemeUserCount, UpdateCount)
+from olympia.users.models import UserProfile
 
 
 class StatsTest(TestCase):

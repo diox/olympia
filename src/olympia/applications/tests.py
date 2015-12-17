@@ -7,8 +7,8 @@ from nose.tools import eq_
 
 from olympia import amo
 from olympia.amo.tests import TestCase
-from amo.helpers import url
-from applications.models import AppVersion
+from olympia.amo.helpers import url
+from olympia.applications.models import AppVersion
 
 
 class TestAppVersion(TestCase):
