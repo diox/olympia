@@ -4,6 +4,7 @@ import urlparse
 
 from django.conf import settings
 from django.utils.http import urlquote
+from django.utils.translation import ugettext as _
 
 import commonware.log
 from django_statsd.clients import statsd
@@ -13,7 +14,6 @@ import amo
 from amo.helpers import absolutify
 from amo.urlresolvers import reverse
 from amo.utils import log_cef
-from tower import ugettext as _
 
 
 class PaypalError(Exception):

@@ -3,10 +3,10 @@ from itertools import groupby
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, render
+from django.utils.translation import ugettext as _
 
 import commonware.log
 from product_details import product_details
-from tower import ugettext as _
 
 import amo
 from access.models import Group

@@ -159,13 +159,6 @@ LOCALE_PATHS = (
     path('locale'),
 )
 
-# Tower / L10n
-STANDALONE_DOMAINS = ['messages', 'javascript']
-TOWER_KEYWORDS = {
-    '_lazy': None,
-}
-TOWER_ADD_HEADERS = True
-
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
@@ -294,10 +287,18 @@ def JINJA_CONFIG():
     import jinja2
     from django.conf import settings
     from django.core.cache import cache
-    config = {'extensions': ['tower.template.i18n', 'amo.ext.cache',
-                             'jinja2.ext.do',
-                             'jinja2.ext.with_', 'jinja2.ext.loopcontrols'],
-              'finalize': lambda x: x if x is not None else ''}
+    config = {
+        'extensions': [
+            'amo.ext.cache',
+            'jinja2.ext.i18n',
+            'puente.ext.i18n',
+            'jinja2.ext.do',
+            'jinja2.ext.with_',
+            'jinja2.ext.loopcontrols'
+        ],
+        'finalize': lambda x: x if x is not None else ''
+    }
+
     if False and not settings.DEBUG:
         # We're passing the _cache object directly to jinja because
         # Django can't store binary directly; it enforces unicode on it.
@@ -358,6 +359,7 @@ INSTALLED_APPS = (
     # This the path management and monkey-patching required to load the rest,
     # so it must come first.
     'olympia',
+    'core',
 
     'amo',  # amo comes first so it always takes precedence.
     'abuse',
@@ -387,7 +389,7 @@ INSTALLED_APPS = (
     'sharing',
     'stats',
     'tags',
-    'tower',  # for ./manage.py extract
+    'puente',  # for ./manage.py extract
     'translations',
     'users',
     'versions',
@@ -419,28 +421,34 @@ TEST_INSTALLED_APPS = (
 )
 
 # Tells the extract script what files to look for l10n in and what function
-# handles the extraction.  The Tower library expects this.
-DOMAIN_METHODS = {
-    'messages': [
-        ('apps/**.py',
-            'tower.management.commands.extract.extract_tower_python'),
-        ('apps/**/templates/**.html',
-            'tower.management.commands.extract.extract_tower_template'),
-        ('templates/**.html',
-            'tower.management.commands.extract.extract_tower_template'),
-        ('**/templates/**.lhtml',
-            'tower.management.commands.extract.extract_tower_template'),
-    ],
-    'javascript': [
-        # We can't say **.js because that would dive into mochikit and timeplot
-        # and all the other baggage we're carrying.  Timeplot, in particular,
-        # crashes the extractor with bad unicode data.
-        ('static/js/*.js', 'javascript'),
-        ('static/js/amo2009/**.js', 'javascript'),
-        ('static/js/common/**.js', 'javascript'),
-        ('static/js/impala/**.js', 'javascript'),
-        ('static/js/zamboni/**.js', 'javascript'),
-    ],
+# handles the extraction.  The puente library expects this.
+PUENTE = {
+    'BASE_DIR': ROOT,
+    # Tells the extract script what files to look for l10n in and what function
+    # handles the extraction.
+    'DOMAIN_METHODS': {
+        'django': [
+            ('apps/**.py', 'python'),
+
+            # Make sure we're parsing django-admin templates with the django
+            # template extractor
+            ('apps/zadmin/templates/admin/*.html', 'django_babel.extract.extract_django'),
+
+            ('apps/**/templates/**.html', 'jinja2'),
+            ('templates/**.html', 'jinja2'),
+            ('**/templates/**.lhtml', 'jinja2'),
+        ],
+        'djangojs': [
+            # We can't say **.js because that would dive into mochikit and timeplot
+            # and all the other baggage we're carrying.  Timeplot, in particular,
+            # crashes the extractor with bad unicode data.
+            ('static/js/*.js', 'javascript'),
+            ('static/js/amo2009/**.js', 'javascript'),
+            ('static/js/common/**.js', 'javascript'),
+            ('static/js/impala/**.js', 'javascript'),
+            ('static/js/zamboni/**.js', 'javascript'),
+        ],
+    },
 }
 
 # Bundles is a dictionary of two dictionaries, css and js, which list css files
@@ -1191,6 +1199,16 @@ REDIS_LOCATION = os.environ.get('REDIS_LOCATION', 'localhost:6379')
 REDIS_BACKENDS = {
     'master': 'redis://{location}?socket_timeout=0.5'.format(
         location=REDIS_LOCATION)}
+
+REDIS_LOCATION = os.environ.get('REDIS_LOCATION', 'localhost')
+REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+
+REDIS_BACKENDS = {
+    'master': {
+        'HOST': REDIS_LOCATION,
+        'OPTIONS': {'socket_timeout': 0.5},
+    }
+}
 
 # Full path or executable path (relative to $PATH) of the spidermonkey js
 # binary.  It must be a version compatible with amo-validator.

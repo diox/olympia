@@ -1,9 +1,8 @@
 from django.contrib.syndication.views import Feed
 from django.shortcuts import get_object_or_404
 from django.utils.feedgenerator import DefaultFeed
+from django.utils.translation import ugettext as _
 from jingo.helpers import datetime
-
-from tower import ugettext as _
 
 import amo
 from amo.urlresolvers import reverse

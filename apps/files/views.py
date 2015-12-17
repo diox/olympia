@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import condition
+from django.utils.translation import ugettext as _
 
 import commonware.log
 import waffle
@@ -16,8 +17,6 @@ from files.decorators import (etag, file_view, compare_file_view,
                               file_view_token, last_modified)
 from files.tasks import extract_file
 from . import forms
-
-from tower import ugettext as _
 
 
 log = commonware.log.getLogger('z.addons')

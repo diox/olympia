@@ -1686,7 +1686,7 @@ class TestAddonGetURLPath(amo.tests.TestCase):
         prevent it.
         """
         addon = Addon(slug='woo')
-        tpl = jingo.env.from_string(
+        tpl = jingo.get_env().from_string(
             '{% from "devhub/includes/macros.html" '
             'import link_if_listed_else_text %}'
             '{{ link_if_listed_else_text(addon, "foo") }}')

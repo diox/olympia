@@ -43,7 +43,7 @@ def application(env, start_response):
     return django_app(env, start_response)
 
 
-if olympia.load_newrelic:
+if olympia.load_newrelic():
     import newrelic.agent
     application = newrelic.agent.wsgi_application()(application)
 # Uncomment this to figure out what's going on with the mod_wsgi environment.

@@ -12,11 +12,11 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage as storage
 from django.core.management import call_command
+from django.utils.translation import ugettext as _
 
 from celery.exceptions import SoftTimeLimitExceeded
 from celery.result import AsyncResult
 from django_statsd.clients import statsd
-from tower import ugettext as _
 
 import amo
 import validator

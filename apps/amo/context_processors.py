@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils import translation
+from django.utils.translation import ugettext as _, get_language, get_language_bidi
 from django.utils.http import urlquote
 
 import waffle
 from cache_nuggets.lib import memoize
-from tower import ugettext as _
 
 import amo
 from amo.urlresolvers import reverse
@@ -24,9 +24,8 @@ def static_url(request):
 def i18n(request):
     return {'LANGUAGES': settings.LANGUAGES,
             'LANG': (
-                settings.LANGUAGE_URL_MAP.get(translation.get_language())
-                or translation.get_language()),
-            'DIR': 'rtl' if translation.get_language_bidi() else 'ltr',
+                settings.LANGUAGE_URL_MAP.get(get_language()) or get_language()),
+            'DIR': 'rtl' if get_language_bidi() else 'ltr',
             }
 
 

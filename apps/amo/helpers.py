@@ -9,7 +9,8 @@ from urlparse import urljoin
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms import CheckboxInput
-from django.utils import translation
+from django.utils.translation import (
+    ugettext as _, trim_whitespace, to_locale, get_language)
 from django.utils.encoding import smart_unicode
 from django.utils.html import format_html
 from django.template import defaultfilters
@@ -19,12 +20,11 @@ import jinja2
 import six
 import waffle
 from babel.support import Format
-from jingo import register, env
+from jingo import register, get_env
 # Needed to make sure our own |f filter overrides jingo's one.
 from jingo import helpers  # noqa
 from jingo_minify.helpers import (_build_html, _get_compiled_css_url, get_path,
                                   is_external)
-from tower import ugettext as _, strip_whitespace
 
 import amo
 from amo import utils, urlresolvers
@@ -122,20 +122,20 @@ def paginator(pager):
 
 @register.filter
 def impala_paginator(pager):
-    t = env.get_template('amo/impala/paginator.html')
+    t = get_env().get_template('amo/impala/paginator.html')
     return jinja2.Markup(t.render({'pager': pager}))
 
 
 @register.filter
 def mobile_paginator(pager):
-    t = env.get_template('amo/mobile/paginator.html')
+    t = get_env().get_template('amo/mobile/paginator.html')
     return jinja2.Markup(t.render({'pager': pager}))
 
 
 @register.filter
 def mobile_impala_paginator(pager):
     # Impala-style paginator that is easier to mobilefy.
-    t = env.get_template('amo/mobile/impala_paginator.html')
+    t = get_env().get_template('amo/mobile/impala_paginator.html')
     return jinja2.Markup(t.render({'pager': pager}))
 
 
@@ -208,12 +208,12 @@ class Paginator(object):
     def render(self):
         c = {'pager': self.pager, 'num_pages': self.num_pages,
              'count': self.count}
-        t = env.get_template('amo/paginator.html').render(c)
+        t = get_env().get_template('amo/paginator.html').render(c)
         return jinja2.Markup(t)
 
 
 def _get_format():
-    lang = translation.get_language()
+    lang = get_language()
     return Format(utils.get_locale_from_lang(lang))
 
 
@@ -284,7 +284,7 @@ def breadcrumbs(context, items=list(), add_default=True, crumb_size=40):
 
     crumbs = [(url, truncate(label, crumb_size)) for (url, label) in crumbs]
     c = {'breadcrumbs': crumbs}
-    t = env.get_template('amo/breadcrumbs.html').render(c)
+    t = get_env().get_template('amo/breadcrumbs.html').render(c)
     return jinja2.Markup(t)
 
 
@@ -310,7 +310,7 @@ def impala_breadcrumbs(context, items=list(), add_default=True, crumb_size=40):
 
     crumbs = [(url, truncate(label, crumb_size)) for (url, label) in crumbs]
     c = {'breadcrumbs': crumbs, 'has_home': add_default}
-    t = env.get_template('amo/impala/breadcrumbs.html').render(c)
+    t = get_env().get_template('amo/impala/breadcrumbs.html').render(c)
     return jinja2.Markup(t)
 
 
@@ -386,7 +386,7 @@ def license_link(license):
     if not getattr(license, 'builtin', True):
         return _('Custom License')
 
-    t = env.get_template('amo/license_link.html').render({'license': license})
+    t = get_env().get_template('amo/license_link.html').render({'license': license})
     return jinja2.Markup(t)
 
 
@@ -511,7 +511,7 @@ def _side_nav(context, addon_type, cat):
         base_url = Addon.get_type_url(addon_type)
     ctx = dict(request=request, base_url=base_url, categories=categories,
                addon_type=addon_type, amo=amo)
-    return jinja2.Markup(env.get_template('amo/side_nav.html').render(ctx))
+    return jinja2.Markup(get_env().get_template('amo/side_nav.html').render(ctx))
 
 
 @register.function
@@ -536,18 +536,34 @@ def _site_nav(context):
     ctx = dict(request=request, amo=amo,
                extensions=sorted_cats(extensions),
                personas=sorted_cats(personas))
-    return jinja2.Markup(env.get_template('amo/site_nav.html').render(ctx))
+    return jinja2.Markup(get_env().get_template('amo/site_nav.html').render(ctx))
 
 
 @register.function
 def loc(s):
     """A noop function for strings that are not ready to be localized."""
-    return strip_whitespace(s)
+    return trim_whitespace(s)
 
 
 @register.function
 def site_event_type(type):
     return amo.SITE_EVENT_CHOICES[type]
+
+
+@register.function
+@jinja2.contextfunction
+def remora_url(context, url, lang=None, app=None, prefix=''):
+    """Wrapper for urlresolvers.remora_url"""
+    if lang is None:
+        _lang = context['LANG']
+        if _lang:
+            lang = to_locale(_lang).replace('_', '-')
+    if app is None:
+        try:
+            app = context['APP'].short
+        except (AttributeError, KeyError):
+            pass
+    return urlresolvers.remora_url(url=url, lang=lang, app=app, prefix=prefix)
 
 
 @register.function
@@ -563,7 +579,7 @@ def hasOneToOne(context, obj, attr):
 @register.function
 def no_results_amo():
     # This prints a "No results found" message. That's all. Carry on.
-    t = env.get_template('amo/no_results.html').render()
+    t = get_env().get_template('amo/no_results.html').render()
     return jinja2.Markup(t)
 
 

@@ -56,3 +56,4 @@ docker/artifacts/*
 logs/*
 supervisord.pid
 .ipython
+src/

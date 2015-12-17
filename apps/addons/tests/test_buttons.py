@@ -74,7 +74,7 @@ class ButtonTest(amo.tests.TestCase):
             'request': self.request,
         }
 
-    @patch('addons.buttons.jingo.env.get_template')
+    @patch('addons.buttons.jingo.Environment.get_template')
     def get_button(self, t_mock, **kwargs):
         """Proxy for calling install_button."""
         template_mock = Mock()

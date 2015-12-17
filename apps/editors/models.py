@@ -6,9 +6,9 @@ from django.db import models
 from django.db.models import Sum
 from django.template import Context, loader
 from django.utils.datastructures import SortedDict
+from django.utils.translation import ugettext_lazy as _lazy
 
 import commonware.log
-from tower import ugettext_lazy as _lazy
 
 import amo
 import amo.models
@@ -46,8 +46,8 @@ models.signals.pre_save.connect(save_signal, sender=CannedResponse,
 
 
 class AddonCannedResponseManager(amo.models.ManagerBase):
-    def get_query_set(self):
-        qs = super(AddonCannedResponseManager, self).get_query_set()
+    def get_queryset(self):
+        qs = super(AddonCannedResponseManager, self).get_queryset()
         return qs.filter(type=amo.CANNED_RESPONSE_ADDON)
 
 
@@ -676,8 +676,8 @@ class RereviewQueueThemeManager(amo.models.ManagerBase):
         amo.models.ManagerBase.__init__(self)
         self.include_deleted = include_deleted
 
-    def get_query_set(self):
-        qs = super(RereviewQueueThemeManager, self).get_query_set()
+    def get_queryset(self):
+        qs = super(RereviewQueueThemeManager, self).get_queryset()
         if self.include_deleted:
             return qs
         else:

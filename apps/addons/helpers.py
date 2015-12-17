@@ -1,7 +1,7 @@
 import jinja2
 
 from jingo import register
-from tower import ugettext as _
+from django.utils.translation import ugettext as _
 
 from . import buttons
 from amo.utils import chunked

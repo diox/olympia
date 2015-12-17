@@ -1,5 +1,5 @@
 from versions.compare import version_int as vint
-from tower import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
 from base import *  # noqa
 

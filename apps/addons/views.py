@@ -8,9 +8,10 @@ from operator import attrgetter
 from django import http
 from django.conf import settings
 from django.db.models import Q
-from django.shortcuts import (get_list_or_404, get_object_or_404, redirect,
-                              render)
-from django.utils.translation import trans_real as translation
+from django.shortcuts import (
+    get_list_or_404, get_object_or_404, redirect, render)
+from django.utils.translation import (
+    trans_real as translation, ugettext as _, ugettext_lazy as _lazy)
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.vary import vary_on_headers
@@ -19,7 +20,6 @@ import caching.base as caching
 import jinja2
 import commonware.log
 import session_csrf
-from tower import ugettext as _, ugettext_lazy as _lazy
 from mobility.decorators import mobilized, mobile_template
 
 import amo

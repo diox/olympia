@@ -1,7 +1,6 @@
 from django import http
 from django.contrib.syndication.views import Feed
-
-from tower import ugettext as _
+from django.utils.translation import ugettext as _
 
 from amo.helpers import absolutify, page_name
 from amo.urlresolvers import reverse
