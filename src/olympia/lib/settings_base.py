@@ -291,7 +291,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
 TEMPLATE_DIRS = (
     path('media', 'docs'),
-    path('templates'),
+    path('src/olympia/templates'),
 )
 
 

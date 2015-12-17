@@ -90,7 +90,7 @@ class BulkValidationForm(happyforms.ModelForm):
         return self._clean_appversion(self.cleaned_data['target_version'])
 
 
-path = os.path.join(settings.ROOT, 'zadmin/templates/zadmin')
+path = os.path.join(settings.ROOT, 'src/olympia/zadmin/templates/zadmin')
 texts = {
     'validation': open('%s/%s' % (path, 'validation-email.txt')).read(),
 }
