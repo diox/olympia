@@ -355,7 +355,7 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = 'users.UserProfile'
 
 # Override this in the site settings.
-ROOT_URLCONF = 'lib.urls_base'
+ROOT_URLCONF = 'olympia.lib.urls_base'
 
 INSTALLED_APPS = (
     'olympia.amo',  # amo comes first so it always takes precedence.
@@ -415,7 +415,7 @@ INSTALLED_APPS = (
 # These apps are only needed in a testing environment. They are added to
 # INSTALLED_APPS by the amo.runner.TestRunner test runner.
 TEST_INSTALLED_APPS = (
-    'translations.tests.testapp',
+    'olympia.translations.tests.testapp',
 )
 
 # Tells the extract script what files to look for l10n in and what function

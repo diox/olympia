@@ -15,7 +15,7 @@ DEBUG_PROPAGATE_EXCEPTIONS = False
 # These apps are great during development.
 INSTALLED_APPS += (
     'django_extensions',
-    'landfill',
+    'olympia.landfill',
 )
 
 # Using locmem deadlocks in certain scenarios. This should all be fixed,
