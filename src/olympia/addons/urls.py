@@ -52,7 +52,8 @@ urlpatterns = patterns(
     ('^addon/%s/' % ADDON_ID, include(detail_patterns)),
 
     # Accept extra junk at the end for a cache-busting build id.
-    url('^addons/buttons.js(?:/.+)?$', 'olympia.addons.buttons.js'),
+    url('^addons/buttons.js(?:/.+)?$', 'olympia.addons.buttons.js',
+        name='addons.buttons.js'),
 
     # For happy install button debugging.
     url('^addons/smorgasbord$', 'olympia.addons.buttons.smorgasbord'),
