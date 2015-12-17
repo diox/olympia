@@ -13,7 +13,7 @@ from django.db import connection, models, transaction
 import caching.base as caching
 
 from olympia import amo
-from olympia.models import ManagerBase, ModelBase
+from olympia.amo.models import ManagerBase, ModelBase
 from olympia.sharing.utils import attach_share_counts
 from olympia.access import acl
 from olympia.addons.models import Addon, AddonRecommendation
@@ -408,7 +408,7 @@ class Collection(CollectionBase, ModelBase):
         Used by acl.check_ownership to see if request.user has permissions for
         the collection.
         """
-        from access import acl
+        from olympia.access import acl
         return acl.check_collection_ownership(request, self, require_owner)
 
 

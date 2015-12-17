@@ -162,9 +162,9 @@ def send_mail(subject, message, from_email=None, recipient_list=None,
 
     Adds blacklist checking and error logging.
     """
-    from amo.helpers import absolutify
-    from amo.tasks import send_email
-    import users.notifications as notifications
+    from olympia.amo.helpers import absolutify
+    from olympia.amo.tasks import send_email
+    from olympia.users import notifications
 
     if not recipient_list:
         return True
@@ -314,7 +314,7 @@ def send_html_mail_jinja(subject, html_template, text_template, context,
 class JSONEncoder(json.DjangoJSONEncoder):
 
     def default(self, obj):
-        from versions.models import ApplicationsVersions
+        from olympia.versions.models import ApplicationsVersions
 
         unicodable = (Translation, Promise)
 

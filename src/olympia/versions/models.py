@@ -225,12 +225,10 @@ class Version(OnChangeMixin, ModelBase):
     @property
     def current_queue(self):
         """Return the current queue, or None if not in a queue."""
-        from editors.models import (ViewFullReviewQueue,
-                                    ViewPendingQueue,
-                                    ViewPreliminaryQueue,
-                                    ViewUnlistedFullReviewQueue,
-                                    ViewUnlistedPendingQueue,
-                                    ViewUnlistedPreliminaryQueue)
+        from olympia.editors.models import (
+            ViewFullReviewQueue, ViewPendingQueue, ViewPreliminaryQueue,
+            ViewUnlistedFullReviewQueue, ViewUnlistedPendingQueue,
+            ViewUnlistedPreliminaryQueue)
 
         if self.addon.status in [amo.STATUS_NOMINATED,
                                  amo.STATUS_LITE_AND_NOMINATED]:
@@ -247,7 +245,7 @@ class Version(OnChangeMixin, ModelBase):
 
     @amo.cached_property(writable=True)
     def all_activity(self):
-        from devhub.models import VersionLog  # yucky
+        from olympia.devhub.models import VersionLog  # yucky
         al = (VersionLog.objects.filter(version=self.id).order_by('created')
               .select_related('activity_log', 'version').no_cache())
         return al
@@ -321,7 +319,7 @@ class Version(OnChangeMixin, ModelBase):
         the app version ranges that this particular version is incompatible
         with.
         """
-        from addons.models import CompatOverride
+        from olympia.addons.models import CompatOverride
         cos = CompatOverride.objects.filter(addon=self.addon)
         if not cos:
             return []
@@ -442,7 +440,7 @@ class Version(OnChangeMixin, ModelBase):
     @classmethod
     def transformer_activity(cls, versions):
         """Attach all the activity to the versions."""
-        from devhub.models import VersionLog  # yucky
+        from olympia.devhub.models import VersionLog  # yucky
 
         ids = set(v.id for v in versions)
         if not versions:
@@ -516,7 +514,7 @@ def watch_source(old_attr={}, new_attr={}, instance=None, sender=None, **kw):
     # Only admins may review addons with source files attached.
     if old_attr.get('source') != new_attr.get('source'):
         # Imported here to avoid an import loop.
-        from devhub.models import ActivityLog, VersionLog
+        from olympia.devhub.models import ActivityLog, VersionLog
         instance.addon.admin_review = True
         instance.addon.save()
         # Use the addons team go-to user "Mozilla".
@@ -569,7 +567,7 @@ def update_incompatible_versions(sender, instance, **kw):
     except ObjectDoesNotExist:
         return
 
-    from addons import tasks
+    from olympia.addons import tasks
     tasks.update_incompatible_appversions.delay([instance.id])
 
 

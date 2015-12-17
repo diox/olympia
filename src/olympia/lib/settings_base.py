@@ -5,6 +5,7 @@ import datetime
 import logging
 import os
 import socket
+from os.path import dirname
 
 import dj_database_url
 from django.utils.functional import lazy
@@ -32,7 +33,8 @@ except ImportError:
 CSS_MEDIA_DEFAULT = 'all'
 
 # Make filepaths relative to the root of olympia.
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+ROOT = os.path.join(BASE_DIR, '..', '..')
 
 
 def path(*folders):
@@ -200,7 +202,7 @@ MOBILE_DOMAIN = 'm.%s' % DOMAIN
 # The full url of the mobile site.
 MOBILE_SITE_URL = 'http://%s' % MOBILE_DOMAIN
 
-OAUTH_CALLBACK_VIEW = 'api.views.request_token_ready'
+OAUTH_CALLBACK_VIEW = 'olympia.api.views.request_token_ready'
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -280,10 +282,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 
     'django.contrib.messages.context_processors.messages',
 
-    'amo.context_processors.app',
-    'amo.context_processors.i18n',
-    'amo.context_processors.global_settings',
-    'amo.context_processors.static_url',
+    'olympia.amo.context_processors.app',
+    'olympia.amo.context_processors.i18n',
+    'olympia.amo.context_processors.global_settings',
+    'olympia.amo.context_processors.static_url',
     'jingo_minify.helpers.build_ids',
 )
 
@@ -317,11 +319,11 @@ MIDDLEWARE_CLASSES = (
     # AMO URL middleware comes first so everyone else sees nice URLs.
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
     'django_statsd.middleware.GraphiteMiddleware',
-    'amo.middleware.LocaleAndAppURLMiddleware',
+    'olympia.amo.middleware.LocaleAndAppURLMiddleware',
     # Mobile detection should happen in Zeus.
     'mobility.middleware.DetectMobileMiddleware',
     'mobility.middleware.XMobileMiddleware',
-    'amo.middleware.RemoveSlashMiddleware',
+    'olympia.amo.middleware.RemoveSlashMiddleware',
 
     # Munging REMOTE_ADDR must come before ThreadRequest.
     'commonware.middleware.SetRemoteAddrFromForwardedFor',
@@ -333,17 +335,18 @@ MIDDLEWARE_CLASSES = (
 
     'csp.middleware.CSPMiddleware',
 
-    'amo.middleware.CommonMiddleware',
-    'amo.middleware.NoVarySessionMiddleware',
+    'olympia.amo.middleware.CommonMiddleware',
+    'olympia.amo.middleware.NoVarySessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'commonware.log.ThreadRequestMiddleware',
-    'apps.search.middleware.ElasticsearchExceptionMiddleware',
+    'olympia.search.middleware.ElasticsearchExceptionMiddleware',
     'session_csrf.CsrfMiddleware',
 
-    'api.middleware.RestOAuthMiddleware',
+    'olympia.api.middleware.RestOAuthMiddleware',
+
     # This should come after authentication middleware
-    'access.middleware.ACLMiddleware',
+    'olympia.access.middleware.ACLMiddleware',
 
     'commonware.middleware.ScrubRequestOnException',
 )
@@ -355,7 +358,7 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = 'users.UserProfile'
 
 # Override this in the site settings.
-ROOT_URLCONF = 'olympia.lib.urls_base'
+ROOT_URLCONF = 'olympia.urls'
 
 INSTALLED_APPS = (
     'olympia.amo',  # amo comes first so it always takes precedence.
@@ -422,9 +425,9 @@ TEST_INSTALLED_APPS = (
 # handles the extraction.  The Tower library expects this.
 DOMAIN_METHODS = {
     'messages': [
-        ('apps/**.py',
+        ('src/olympia/**.py',
             'tower.management.commands.extract.extract_tower_python'),
-        ('apps/**/templates/**.html',
+        ('src/olympia/**/templates/**.html',
             'tower.management.commands.extract.extract_tower_template'),
         ('templates/**.html',
             'tower.management.commands.extract.extract_tower_template'),
@@ -901,7 +904,8 @@ PRIVATE_MIRROR_URL = '/_privatefiles'
 
 # File paths
 ADDON_ICONS_DEFAULT_PATH = os.path.join(ROOT, 'static', 'img', 'addon-icons')
-CA_CERT_BUNDLE_PATH = os.path.join(ROOT, 'apps/amo/certificates/roots.pem')
+CA_CERT_BUNDLE_PATH = os.path.join(
+    ROOT, 'src/olympia/amo/certificates/roots.pem')
 
 # URL paths
 # paths for images, e.g. mozcdn.com/amo or '/static'
@@ -1168,7 +1172,7 @@ def read_only_mode(env):
     env['AUTHENTICATION_BACKENDS'] = ('users.backends.NoAuthForYou',)
 
     # Add in the read-only middleware before csrf middleware.
-    extra = 'amo.middleware.ReadOnlyMiddleware'
+    extra = 'olympia.amo.middleware.ReadOnlyMiddleware'
     before = 'session_csrf.CsrfMiddleware'
     m = list(env['MIDDLEWARE_CLASSES'])
     m.insert(m.index(before), extra)
@@ -1458,9 +1462,9 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(
         seconds=MAX_JWT_AUTH_TOKEN_LIFETIME),
 
-    'JWT_ENCODE_HANDLER': 'apps.api.jwt_auth.handlers.jwt_encode_handler',
-    'JWT_DECODE_HANDLER': 'apps.api.jwt_auth.handlers.jwt_decode_handler',
-    'JWT_PAYLOAD_HANDLER': 'apps.api.jwt_auth.handlers.jwt_payload_handler',
+    'JWT_ENCODE_HANDLER': 'olympia.api.jwt_auth.handlers.jwt_encode_handler',
+    'JWT_DECODE_HANDLER': 'olympia.api.jwt_auth.handlers.jwt_decode_handler',
+    'JWT_PAYLOAD_HANDLER': 'olympia.api.jwt_auth.handlers.jwt_payload_handler',
     'JWT_ALGORITHM': 'HS256',
     # This adds some padding to timestamp validation in case client/server
     # clocks are off.
