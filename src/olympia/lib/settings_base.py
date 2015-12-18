@@ -5,7 +5,6 @@ import datetime
 import logging
 import os
 import socket
-from os.path import dirname
 
 import dj_database_url
 from django.utils.functional import lazy
@@ -388,7 +387,6 @@ INSTALLED_APPS = (
     'olympia.zadmin',
 
     # Third party apps
-    'tower',  # for ./manage.py extract
     'product_details',
     'moz_header',
     'cronjobs',
