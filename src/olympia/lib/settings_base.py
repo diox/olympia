@@ -358,6 +358,10 @@ AUTH_USER_MODEL = 'users.UserProfile'
 ROOT_URLCONF = 'olympia.urls'
 
 INSTALLED_APPS = (
+    # This the path management and monkey-patching required to load the rest,
+    # so it must come first.
+    'olympia.core',
+
     'olympia.amo',  # amo comes first so it always takes precedence.
     'olympia.abuse',
     'olympia.access',
