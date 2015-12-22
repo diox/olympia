@@ -82,12 +82,12 @@ TASK_USER_ID = 10968
 XSENDFILE = False
 
 # Enable the Django Debug Toolbar for local dev.
-INSTALLED_APPS += (
-    'debug_toolbar',
-)
-DEBUG_TOOLBAR_PATCH_SETTINGS = False  # Prevent DDT from patching the settings.
-
-MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+#INSTALLED_APPS += (
+#    'debug_toolbar',
+#)
+#DEBUG_TOOLBAR_PATCH_SETTINGS = False  # Prevent DDT from patching settings.
+#
+#MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
 
 
 def debug_toolbar_disabled(request):
