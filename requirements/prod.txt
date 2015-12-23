@@ -26,7 +26,7 @@ django_csp==2.0.3
 django-environ==0.4.0
 django-extensions==1.2.5
 django-filter==0.7
-django-mozilla-product-details==0.8.1
+django-mozilla-product-details==0.8.2
 django-multidb-router==0.5.1
 django-mysql-pymysql==0.1
 django-quieter-formset==0.4
