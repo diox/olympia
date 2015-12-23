@@ -5,6 +5,9 @@ NUM_THEMES=$(NUM_ADDONS)
 COMPOSE_PROJECT_NAME?=olympia
 DOCKER_NAME="${COMPOSE_PROJECT_NAME}_web_1"
 
+export PYTHONPATH=src
+export DJANGO_SETTINGS_MODULE=settings
+
 UNAME_S := $(shell uname -s)
 
 help:
