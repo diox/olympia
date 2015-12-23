@@ -428,14 +428,14 @@ PUENTE = {
     # handles the extraction.
     'DOMAIN_METHODS': {
         'django': [
-            ('apps/**.py', 'python'),
+            ('src/olympia/**.py', 'python'),
 
             # Make sure we're parsing django-admin templates with the django
             # template extractor
-            ('apps/zadmin/templates/admin/*.html',
+            ('src/olympia/zadmin/templates/admin/*.html',
              'django_babel.extract.extract_django'),
 
-            ('apps/**/templates/**.html', 'jinja2'),
+            ('src/olympia/**/templates/**.html', 'jinja2'),
             ('templates/**.html', 'jinja2'),
             ('**/templates/**.lhtml', 'jinja2'),
         ],
