@@ -3,7 +3,7 @@ from django.core import paginator
 import mock
 from nose.tools import eq_, ok_
 
-from olympia import amo, search
+from olympia import amo
 from olympia.amo.tests import TestCase, ESTestCaseWithAddons
 from olympia.addons.models import Addon
 
@@ -20,7 +20,7 @@ class TestESIndexing(ESTestCaseWithAddons):
                                  status__in=amo.VALID_STATUSES).count())
 
     def test_get_es_not_mocked(self):
-        es = search.get_es()
+        es = amo.search.get_es()
         assert not issubclass(es.__class__, mock.Mock)
 
 
@@ -39,7 +39,7 @@ class TestNoESIndexing(TestCase):
             mock.Mock)
 
     def test_get_es_mocked(self):
-        es = search.get_es()
+        es = amo.search.get_es()
         assert issubclass(es.__class__, mock.Mock)
 
 
