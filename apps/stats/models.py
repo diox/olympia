@@ -357,12 +357,13 @@ class ThemeUserCount(StatsSearchMixin, models.Model):
     """Theme popularity (weekly average of users).
 
     This is filled in by a cron job reading the popularity from the theme
-    (Persona).
+    (Persona) and then put in ES by the index_stats command. The views should
+    only use the ES data.
 
     """
     addon = models.ForeignKey('addons.Addon')
     count = models.PositiveIntegerField()
-    date = models.DateField()
+    date = models.DateField(db_index=True)
 
     class Meta:
         db_table = 'theme_user_counts'
