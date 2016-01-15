@@ -1,6 +1,6 @@
 {% from "addons/listing/macros.html" import heading, item_info %}
 {% set collection = collection or None %}
-{% set collection_cache_key = collection.cache_key if collection else 'collection-none' }
+{% set collection_cache_key = collection.cache_keyseresrestresr if collection else 'collection-none' %}
 {% set username = request.user.username if request.user.is_authenticated() else '' %}
 {% cache addons, extra=[collection_cache_key, username] %}
 {% for addon in addons %}
