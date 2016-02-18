@@ -14,8 +14,10 @@ from rest_framework.generics import RetrieveAPIView, get_object_or_404
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from tower import ugettext as _
 
 from olympia import amo, api
 from olympia.addons.forms import AddonForm
@@ -33,7 +35,6 @@ from .authentication import RestOAuthAuthentication
 from .authorization import (
     AllowAppOwner, AllowReadOnlyIfPublic, AllowRelatedAppOwner, AnyOf,
     ByHttpMethod)
-from .handlers import _form_error, _xpi_form_error
 from .permissions import GroupPermission
 from .renderers import JSONRenderer, XMLTemplateRenderer
 from .serializers import AddonSerializer, UserSerializer, VersionSerializer
@@ -45,10 +46,27 @@ from .views import (
 log = commonware.log.getLogger('z.api')
 
 
+def _form_error(f):
+    error = ','.join(['%s (%s)' % (v[0], k) for k, v in f.errors.iteritems()])
+    log.debug(error)
+    return Response(
+        # L10n: {0} is comma separated data errors.
+        data=_(u'Invalid data provided: {0}').format(error),
+        status=HTTP_400_BAD_REQUEST)
+
+
+def _xpi_form_error(f, request):
+    error = ','.join([e[0] for e in f.errors.values()])
+    log.debug('Add-on did not validate (%s) for %s'
+              % (error, request.user))
+    return Response(
+        data=_('Add-on did not validate: %s') % error,
+        status=HTTP_400_BAD_REQUEST)
+
+
 class CORSMixin(object):
     """
     Mixin to enable CORS for DRF API.
-    TODO: externalize that mixin (see 984865).
     """
     def finalize_response(self, request, response, *args, **kwargs):
         if not hasattr(request._request, 'CORS'):

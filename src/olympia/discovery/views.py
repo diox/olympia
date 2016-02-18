@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 import commonware.log
 
 from olympia import amo
-from olympia.api import views as api_views
+from olympia.api.views_drf import ListView
 from olympia.amo.models import manual_order
 from olympia.amo.urlresolvers import reverse
 from olympia.addons.decorators import addon_view_factory
@@ -129,12 +129,11 @@ def api_view(request, platform, version, list_type, api_version=1.5,
              format='json', content_type='application/json',
              compat_mode='strict'):
     """Wrapper for calling an API view."""
-    view = api_views.ListView()
-    view.request, view.version = request, api_version
-    view.format, view.content_type = format, content_type
-    r = view.process_request(list_type, platform=platform, version=version,
-                             compat_mode=compat_mode)
-    return json.loads(r.content)
+    view = ListView().as_view()
+    response = view(request, api_version, list_type=list_type,
+                    platform=platform, version=version,
+                    compat_mode=compat_mode, format=format)
+    return json.loads(response.rendered_content)
 
 
 @admin_required

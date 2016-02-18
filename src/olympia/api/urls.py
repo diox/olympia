@@ -2,11 +2,8 @@ from django.conf import settings
 from django.conf.urls import include, patterns, url
 from django.db.transaction import non_atomic_requests
 
-import waffle
-from piston.resource import Resource
-
 from olympia.addons.urls import ADDON_ID
-from olympia.api import authentication, handlers, views, views_drf
+from olympia.api import views, views_drf
 
 API_CACHE_TIMEOUT = getattr(settings, 'API_CACHE_TIMEOUT', 500)
 
@@ -51,10 +48,9 @@ search_regexps = build_urls(base_search_regexp, appendages)
 base_list_regexp = r'list'
 appendages.insert(0, '/(?P<list_type>[^/]+)')
 list_regexps = build_urls(base_list_regexp, appendages)
-ad = {'authentication': authentication.AMOOAuthAuthentication(two_legged=True)}
 
 
-class SwitchToDRF(object):
+class APIWrapper(object):
     """
     Waffle switch to move from Piston to DRF.
     """
@@ -67,69 +63,61 @@ class SwitchToDRF(object):
 
     @non_atomic_requests
     def __call__(self, *args, **kwargs):
-        if waffle.switch_is_active('drf'):
-            if self.with_viewset:
-                actions = {}
-                view_name = self.resource_name + 'ViewSet'
-                if self.only_detail:
-                    actions = {
-                        'get': 'retrieve',
-                        'put': 'update',
-                        'delete': 'delete',
-                    }
-                else:
-                    actions = {
-                        'get': 'retrieve',
-                        'post': 'create',
-                    }
-                return (getattr(views_drf, view_name).as_view(actions)
-                        (*args, **kwargs))
+        if self.with_viewset:
+            actions = {}
+            view_name = self.resource_name + 'ViewSet'
+            if self.only_detail:
+                actions = {
+                    'get': 'retrieve',
+                    'put': 'update',
+                    'delete': 'delete',
+                }
             else:
-                view_name = self.resource_name + 'View'
-                return getattr(views_drf, view_name).as_view()(*args, **kwargs)
+                actions = {
+                    'get': 'retrieve',
+                    'post': 'create',
+                }
+            return (getattr(views_drf, view_name).as_view(actions)
+                    (*args, **kwargs))
         else:
-            if self.with_handler:
-                handler = getattr(handlers, self.resource_name + 'Handler')
-                return Resource(handler=handler, **ad)(*args, **kwargs)
-            else:
-                return (class_view(getattr(views, self.resource_name + 'View'))
-                        (*args, **kwargs))
+            view_name = self.resource_name + 'View'
+            return getattr(views_drf, view_name).as_view()(*args, **kwargs)
 
 
 api_patterns = patterns(
     '',
     # Addon_details
-    url('addon/%s$' % ADDON_ID, SwitchToDRF('AddonDetail'),
+    url('addon/%s$' % ADDON_ID, APIWrapper('AddonDetail'),
         name='api.addon_detail'),
-    url(r'^get_language_packs$', SwitchToDRF('Language'),
+    url(r'^get_language_packs$', APIWrapper('Language'),
         name='api.language'),)
 
 for regexp in search_regexps:
     api_patterns += patterns(
         '',
-        url(regexp + '/?$', SwitchToDRF('Search'), name='api.search'))
+        url(regexp + '/?$', APIWrapper('Search'), name='api.search'))
 
 for regexp in list_regexps:
     api_patterns += patterns(
         '',
-        url(regexp + '/?$', SwitchToDRF('List'), name='api.list'))
+        url(regexp + '/?$', APIWrapper('List'), name='api.list'))
 
 piston_patterns = patterns(
     '',
-    url(r'^user/$', SwitchToDRF('User', with_handler=True), name='api.user'),
+    url(r'^user/$', APIWrapper('User', with_handler=True), name='api.user'),
     url(r'^addons/$',
-        SwitchToDRF('Addons', with_handler=True, with_viewset=True),
+        APIWrapper('Addons', with_handler=True, with_viewset=True),
         name='api.addons'),
     url(r'^addon/%s$' % ADDON_ID,
-        SwitchToDRF('Addons', with_handler=True, with_viewset=True,
-                    only_detail=True),
+        APIWrapper('Addons', with_handler=True, with_viewset=True,
+                   only_detail=True),
         name='api.addon'),
     url(r'^addon/%s/versions$' % ADDON_ID,
-        SwitchToDRF('Versions', with_handler=True, with_viewset=True),
+        APIWrapper('Versions', with_handler=True, with_viewset=True),
         name='api.versions'),
     url(r'^addon/%s/version/(?P<version_id>\d+)$' % ADDON_ID,
-        SwitchToDRF('Versions', with_handler=True, with_viewset=True,
-                    only_detail=True),
+        APIWrapper('Versions', with_handler=True, with_viewset=True,
+                   only_detail=True),
         name='api.version'),
 )
 

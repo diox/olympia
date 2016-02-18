@@ -3,36 +3,27 @@ API views
 """
 import hashlib
 import itertools
-import json
 import random
 import urllib
-from datetime import date, timedelta
 
 from django.core.cache import cache
 from django.db.transaction import non_atomic_requests
 from django.http import HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import render
 from django.template.context import get_standard_processors
-from django.utils import encoding, translation
-from django.utils.decorators import method_decorator
+from django.utils import translation
 from django.utils.encoding import smart_str
 
 import commonware.log
 import jingo
 import waffle
-from caching.base import cached_with
-from tower import ugettext as _, ugettext_lazy
+from tower import ugettext_lazy
 
 from olympia import amo, api
 from olympia.addons.models import Addon, CompatOverride
-from olympia.amo.decorators import (
-    allow_cross_site_request, json_view)
-from olympia.amo.models import manual_order
+from olympia.amo.decorators import json_view
 from olympia.amo.urlresolvers import get_url_prefix
-from olympia.amo.utils import JSONEncoder
-from olympia.api.utils import addon_to_dict, extract_filters
-from olympia.search.views import (
-    AddonSuggestionsAjax, PersonaSuggestionsAjax, name_query)
+from olympia.search.views import AddonSuggestionsAjax, PersonaSuggestionsAjax
 from olympia.versions.compare import version_int
 
 
@@ -210,77 +201,6 @@ def addon_filter(addons, addon_type, limit, app, platform, version,
         return good
 
 
-class APIView(object):
-    """
-    Base view class for all API views.
-    """
-
-    @method_decorator(non_atomic_requests)
-    def __call__(self, request, api_version, *args, **kwargs):
-
-        self.version = float(api_version)
-        self.format = request.REQUEST.get('format', 'xml')
-        self.content_type = ('text/xml' if self.format == 'xml'
-                             else 'application/json')
-        self.request = request
-        if not validate_api_version(api_version):
-            msg = OUT_OF_DATE.format(self.version, api.CURRENT_VERSION)
-            return self.render_msg(msg, ERROR, status=403,
-                                   content_type=self.content_type)
-
-        return self.process_request(*args, **kwargs)
-
-    def render_msg(self, msg, error_level=None, *args, **kwargs):
-        """
-        Renders a simple message.
-        """
-
-        if self.format == 'xml':
-            return render_xml(
-                self.request, 'api/message.xml',
-                {'error_level': error_level, 'msg': msg}, *args, **kwargs)
-        else:
-            return HttpResponse(json.dumps({'msg': _(msg)}), *args, **kwargs)
-
-    def render(self, template, context):
-        context['api_version'] = self.version
-        context['api'] = api
-
-        if self.format == 'xml':
-            return render_xml(self.request, template, context,
-                              content_type=self.content_type)
-        else:
-            return HttpResponse(self.render_json(context),
-                                content_type=self.content_type)
-
-    def render_json(self, context):
-        return json.dumps({'msg': _('Not implemented yet.')})
-
-
-class AddonDetailView(APIView):
-
-    @allow_cross_site_request
-    def process_request(self, addon_id):
-        try:
-            addon = Addon.objects.id_or_slug(addon_id).get()
-        except Addon.DoesNotExist:
-            return self.render_msg(
-                'Add-on not found!', ERROR, status=404,
-                content_type=self.content_type
-            )
-
-        if addon.is_disabled:
-            return self.render_msg('Add-on disabled.', ERROR, status=404,
-                                   content_type=self.content_type)
-        return self.render_addon(addon)
-
-    def render_addon(self, addon):
-        return self.render('api/addon_detail.xml', {'addon': addon})
-
-    def render_json(self, context):
-        return json.dumps(addon_to_dict(context['addon']), cls=JSONEncoder)
-
-
 @non_atomic_requests
 def guid_search(request, api_version, guids):
     lang = request.LANG
@@ -327,85 +247,6 @@ def guid_search(request, api_version, guids):
                        'api_version': api_version, 'api': api})
 
 
-class SearchView(APIView):
-
-    def process_request(self, query, addon_type='ALL', limit=10,
-                        platform='ALL', version=None, compat_mode='strict'):
-        """
-        Query the search backend and serve up the XML.
-        """
-        limit = min(MAX_LIMIT, int(limit))
-        app_id = self.request.APP.id
-
-        # We currently filter for status=PUBLIC for all versions. If
-        # that changes, the contract for API version 1.5 requires
-        # that we continue filtering for it there.
-        filters = {
-            'app': app_id,
-            'status': amo.STATUS_PUBLIC,
-            'is_disabled': False,
-            'has_version': True,
-        }
-
-        # Opts may get overridden by query string filters.
-        opts = {
-            'addon_type': addon_type,
-            'version': version,
-        }
-        # Specific case for Personas (bug 990768): if we search providing the
-        # Persona addon type (9), don't filter on the platform as Personas
-        # don't have compatible platforms to filter on.
-        if addon_type != '9':
-            opts['platform'] = platform
-
-        if self.version < 1.5:
-            # Fix doubly encoded query strings.
-            try:
-                query = urllib.unquote(query.encode('ascii'))
-            except UnicodeEncodeError:
-                # This fails if the string is already UTF-8.
-                pass
-
-        query, qs_filters, params = extract_filters(query, opts)
-
-        qs = Addon.search().query(or_=name_query(query))
-        filters.update(qs_filters)
-        if 'type' not in filters:
-            # Filter by ALL types, which is really all types except for apps.
-            filters['type__in'] = list(amo.ADDON_SEARCH_TYPES)
-        qs = qs.filter(**filters)
-
-        qs = qs[:limit]
-        total = qs.count()
-
-        results = []
-        for addon in qs:
-            compat_version = addon.compatible_version(app_id,
-                                                      params['version'],
-                                                      params['platform'],
-                                                      compat_mode)
-            # Specific case for Personas (bug 990768): if we search providing
-            # the Persona addon type (9), then don't look for a compatible
-            # version.
-            if compat_version or addon_type == '9':
-                addon.compat_version = compat_version
-                results.append(addon)
-                if len(results) == limit:
-                    break
-            else:
-                # We're excluding this addon because there are no
-                # compatible versions. Decrement the total.
-                total -= 1
-
-        return self.render('api/search.xml', {
-            'results': results,
-            'total': total,
-            # For caching
-            'version': version,
-            'compat_mode': compat_mode,
-        })
-
-
 @json_view
 @non_atomic_requests
 def search_suggestions(request):
@@ -422,69 +263,6 @@ def search_suggestions(request):
     return {'suggestions': items}
 
 
-class ListView(APIView):
-
-    def process_request(self, list_type='recommended', addon_type='ALL',
-                        limit=10, platform='ALL', version=None,
-                        compat_mode='strict'):
-        """
-        Find a list of new or featured add-ons.  Filtering is done in Python
-        for cache-friendliness and to avoid heavy queries.
-        """
-        limit = min(MAX_LIMIT, int(limit))
-        APP, platform = self.request.APP, platform.lower()
-        qs = Addon.objects.listed(APP)
-        shuffle = True
-
-        if list_type in ('by_adu', 'featured'):
-            qs = qs.exclude(type=amo.ADDON_PERSONA)
-
-        if list_type == 'newest':
-            new = date.today() - timedelta(days=NEW_DAYS)
-            addons = (qs.filter(created__gte=new)
-                      .order_by('-created'))[:limit + BUFFER]
-        elif list_type == 'by_adu':
-            addons = qs.order_by('-average_daily_users')[:limit + BUFFER]
-            shuffle = False  # By_adu is an ordered list.
-        elif list_type == 'hotness':
-            # Filter to type=1 so we hit visible_idx. Only extensions have a
-            # hotness index right now so this is not incorrect.
-            addons = (qs.filter(type=amo.ADDON_EXTENSION)
-                      .order_by('-hotness'))[:limit + BUFFER]
-            shuffle = False
-        else:
-            ids = Addon.featured_random(APP, self.request.LANG)
-            addons = manual_order(qs, ids[:limit + BUFFER], 'addons.id')
-            shuffle = False
-
-        args = (addon_type, limit, APP, platform, version, compat_mode,
-                shuffle)
-
-        def f():
-            return self._process(addons, *args)
-
-        return cached_with(addons, f, map(encoding.smart_str, args))
-
-    def _process(self, addons, *args):
-        return self.render('api/list.xml',
-                           {'addons': addon_filter(addons, *args)})
-
-    def render_json(self, context):
-        return json.dumps([addon_to_dict(a) for a in context['addons']],
-                          cls=JSONEncoder)
-
-
-class LanguageView(APIView):
-
-    def process_request(self):
-        addons = Addon.objects.filter(status=amo.STATUS_PUBLIC,
-                                      type=amo.ADDON_LPAPP,
-                                      appsupport__app=self.request.APP.id,
-                                      disabled_by_user=False).order_by('pk')
-        return self.render('api/list.xml', {'addons': addons,
-                                            'show_localepicker': True})
-
-
 # pylint: disable-msg=W0613
 @non_atomic_requests
 def redirect_view(request, url):
@@ -496,10 +274,3 @@ def redirect_view(request, url):
     dest = get_url_prefix().fix(dest)
 
     return HttpResponsePermanentRedirect(dest)
-
-
-@non_atomic_requests
-def request_token_ready(request, token):
-    error = request.GET.get('error', '')
-    ctx = {'error': error, 'token': token}
-    return render(request, 'piston/request_token_ready.html', ctx)
