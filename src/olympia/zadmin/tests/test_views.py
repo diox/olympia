@@ -655,6 +655,7 @@ class TestBulkNotify(BulkValidationTest):
 class TestBulkValidationTask(BulkValidationTest):
 
     def test_validate(self):
+        assert list(Addon.objects.values_list('slug', flat=True)) == ['a3615']
         self.start_validation()
         res = ValidationResult.objects.get()
         self.assertCloseToNow(res.completed)

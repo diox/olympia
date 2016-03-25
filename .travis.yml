@@ -3,11 +3,6 @@ sudo: false
 python:
   - "2.7"
 env:
-  - TOX_ENV=flake8
-  - TOX_ENV=docs
-  - TOX_ENV=assets
-  - TOX_ENV=es
-  - TOX_ENV=addons-devhub-editors
   - TOX_ENV=main
 services:
   - memcached
