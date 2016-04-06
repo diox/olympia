@@ -21,7 +21,7 @@ install:
   - nvm deactivate
   - nvm install 4
   - nvm use 4
-  - pip install tox==1.8.1
+  - pip install tox
 before_script:
   - mysql -e 'create database olympia;'
   - node --version
