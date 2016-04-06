@@ -164,12 +164,12 @@ def home(request):
     # Try to read user position from retrieved reviews.
     # If not available, query for it.
     reviews_total_position = (
-        ActivityLog.objects.user_position(reviews_total, request.user)
-        or ActivityLog.objects.total_reviews_user_position(request.user))
+        ActivityLog.objects.user_position(reviews_total, request.user) or
+        ActivityLog.objects.total_reviews_user_position(request.user))
 
     reviews_monthly_position = (
-        ActivityLog.objects.user_position(reviews_monthly, request.user)
-        or ActivityLog.objects.monthly_reviews_user_position(request.user))
+        ActivityLog.objects.user_position(reviews_monthly, request.user) or
+        ActivityLog.objects.monthly_reviews_user_position(request.user))
 
     limited_reviewer = is_limited_reviewer(request)
     data = context(

@@ -1083,8 +1083,8 @@ class TestProfileLinks(UserViewBase):
         eq_(links.length, 2)
         eq_(links.eq(0).attr('href'), reverse('users.edit'))
         # TODO XXX Uncomment when we have real user editing pages
-        #eq_(links.eq(1).attr('href') + "/",
-        #reverse('admin:users_userprofile_change', args=[self.user.id]))
+        # eq_(links.eq(1).attr('href') + "/",
+        # reverse('admin:users_userprofile_change', args=[self.user.id]))
 
     def test_user_properties(self):
         self.client.login(username='jbalogh@mozilla.com', password='password')

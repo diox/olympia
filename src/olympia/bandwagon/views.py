@@ -42,8 +42,8 @@ log = commonware.log.getLogger('z.collections')
 
 @non_atomic_requests
 def get_collection(request, username, slug):
-    if (slug in SPECIAL_SLUGS.values() and request.user.is_authenticated()
-            and request.user.username == username):
+    if (slug in SPECIAL_SLUGS.values() and request.user.is_authenticated() and
+            request.user.username == username):
         return getattr(request.user, slug + '_collection')()
     else:
         return get_object_or_404(Collection.objects,
@@ -372,8 +372,8 @@ def ajax_new(request):
         addon_id = request.REQUEST['addon_id']
         collection.add_addon(Addon.objects.get(pk=addon_id))
         log.info('Created collection %s' % collection.id)
-        return http.HttpResponseRedirect(reverse('collections.ajax_list')
-                                         + '?addon_id=%s' % addon_id)
+        return http.HttpResponseRedirect(reverse('collections.ajax_list') +
+                                         '?addon_id=%s' % addon_id)
 
     return render(request, 'bandwagon/ajax_new.html', {'form': form})
 

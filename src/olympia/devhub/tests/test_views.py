@@ -667,8 +667,8 @@ class TestPaymentsProfile(TestCase):
         self.addon = a = self.get_addon()
         self.url = self.addon.get_dev_url('payments')
         # Make sure all the payment/profile data is clear.
-        assert not (a.wants_contributions or a.paypal_id or a.the_reason
-                    or a.the_future or a.takes_contributions)
+        assert not (a.wants_contributions or a.paypal_id or a.the_reason or
+                    a.the_future or a.takes_contributions)
         assert self.client.login(username='del@icio.us', password='password')
         self.paypal_mock = mock.Mock()
         self.paypal_mock.return_value = (True, None)

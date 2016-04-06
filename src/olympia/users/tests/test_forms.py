@@ -162,7 +162,7 @@ class TestUserDeleteForm(UserFormBase):
         data = {'email': 'jbalogh@mozilla.com', 'confirm': True}
         self.client.post('/en-US/firefox/users/delete', data, follow=True)
         # TODO XXX: Bug 593055
-        #self.assertContains(r, "Profile Deleted")
+        # self.assertContains(r, "Profile Deleted")
         u = UserProfile.objects.get(id=4043307)
         eq_(u.deleted, True)
         eq_(u.email, None)

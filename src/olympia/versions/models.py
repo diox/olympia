@@ -339,8 +339,8 @@ class Version(OnChangeMixin, ModelBase):
         app_versions = []
         for co in cos:
             for range in co.collapsed_ranges():
-                if (version_int(range.min) <= version_int(self.version)
-                                           <= version_int(range.max)):
+                if (version_int(range.min) <= version_int(self.version) <=
+                        version_int(range.max)):
                     app_versions.extend([(a.min, a.max) for a in range.apps])
         return app_versions
 
@@ -556,9 +556,9 @@ def inherit_nomination(sender, instance, **kw):
     if kw.get('raw'):
         return
     addon = instance.addon
-    if (instance.nomination is None
-            and addon.status in amo.UNDER_REVIEW_STATUSES
-            and not instance.is_beta):
+    if (instance.nomination is None and
+            addon.status in amo.UNDER_REVIEW_STATUSES and
+            not instance.is_beta):
         last_ver = (Version.objects.filter(addon=addon)
                     .exclude(nomination=None).order_by('-nomination'))
         if last_ver.exists():

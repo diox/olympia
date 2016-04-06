@@ -30,12 +30,12 @@ def install_button(context, addon, version=None, show_contrib=True,
     request = context['request']
     app, lang = context['APP'], context['LANG']
     src = src or context.get('src') or request.GET.get('src', '')
-    collection = ((collection.uuid if hasattr(collection, 'uuid') else None)
-                  or collection
-                  or context.get('collection')
-                  or request.GET.get('collection')
-                  or request.GET.get('collection_id')
-                  or request.GET.get('collection_uuid'))
+    collection = ((collection.uuid if hasattr(collection, 'uuid') else None) or
+                  collection or
+                  context.get('collection') or
+                  request.GET.get('collection') or
+                  request.GET.get('collection_id') or
+                  request.GET.get('collection_uuid'))
     button = install_button_factory(addon, app, lang, version, show_contrib,
                                     show_warning, src, collection, size,
                                     detailed, impala,
@@ -116,15 +116,15 @@ class InstallButton(object):
         self.lite = self.version and self.version.is_lite
         self.unreviewed = (addon.is_unreviewed() or version_unreviewed or
                            self.is_beta)
-        self.featured = (not self.unreviewed
-                         and not self.lite
-                         and not self.is_beta
-                         and addon.is_featured(app, lang))
+        self.featured = (not self.unreviewed and
+                         not self.lite and
+                         not self.is_beta and
+                         addon.is_featured(app, lang))
         self.is_persona = addon.type == amo.ADDON_PERSONA
 
         self._show_contrib = show_contrib
-        self.show_contrib = (show_contrib and addon.takes_contributions
-                             and addon.annoying == amo.CONTRIB_ROADBLOCK)
+        self.show_contrib = (show_contrib and addon.takes_contributions and
+                             addon.annoying == amo.CONTRIB_ROADBLOCK)
         self.show_warning = show_warning and self.unreviewed
 
     def prepare(self):
@@ -148,8 +148,8 @@ class InstallButton(object):
     def attrs(self):
         rv = {}
         addon = self.addon
-        if (self._show_contrib and addon.takes_contributions
-                and addon.annoying == amo.CONTRIB_AFTER):
+        if (self._show_contrib and addon.takes_contributions and
+                addon.annoying == amo.CONTRIB_AFTER):
             rv['data-after'] = 'contrib'
         if addon.type == amo.ADDON_SEARCH:
             rv['data-search'] = 'true'
@@ -299,8 +299,8 @@ def smorgasbord(request):
     all_versions(lambda: Addon.objects.get(id=5308), 'windows/linux-only')
 
     # EULA.
-    eula = (Q(eula__isnull=False, eula__localized_string__isnull=False)
-            & ~Q(eula__localized_string=''))
+    eula = Q(eula__isnull=False, eula__localized_string__isnull=False) & ~Q(
+        eula__localized_string='')
     addons.append(normal.filter(eula)[0])
     addons[-1].tag = 'eula'
     addons.append(exp.filter(eula)[0])

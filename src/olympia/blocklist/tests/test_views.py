@@ -147,8 +147,8 @@ class BlocklistItemTest(XMLAssertsMixin, BlocklistViewTest):
         gfx.save()
         eq(find_lastupdate(), gfx.modified)
 
-        assert (self.item.created != self.item.modified != plugin.created
-                != plugin.modified != gfx.created != gfx.modified)
+        assert (self.item.created != self.item.modified != plugin.created !=
+                plugin.modified != gfx.created != gfx.modified)
 
     def test_no_items(self):
         self.item.delete()

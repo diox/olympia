@@ -206,8 +206,8 @@ def es_extensions(request, category=None, template=None):
         q = Category.objects.filter(application=request.APP.id, type=TYPE)
         category = get_object_or_404(q, slug=category)
 
-    if ('sort' not in request.GET and not request.MOBILE
-            and category and category.count > 4):
+    if ('sort' not in request.GET and not request.MOBILE and
+            category and category.count > 4):
         return category_landing(request, category)
 
     qs = (Addon.search().filter(type=TYPE, app=request.APP.id,

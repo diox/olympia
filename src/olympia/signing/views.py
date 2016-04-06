@@ -60,10 +60,9 @@ def with_addon(allow_missing=False):
             # auther of the add-on or the current user is an admin and the
             # request is a GET.
             if addon is None or (
-                    addon.has_author(request.user)
-                    or (request.method == 'GET'
-                        and acl.action_allowed_user(request.user, 'Addons',
-                                                    'Edit'))):
+                    addon.has_author(request.user) or
+                    (request.method == 'GET' and
+                     acl.action_allowed_user(request.user, 'Addons', 'Edit'))):
                 return fn(view, request, addon=addon, **kwargs)
             else:
                 return Response(

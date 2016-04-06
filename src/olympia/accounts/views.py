@@ -193,8 +193,8 @@ def with_user(format):
             else:
                 identity_user = find_user(identity)
                 if request.user.is_authenticated():
-                    if (identity_user is not None
-                            and identity_user != request.user):
+                    if (identity_user is not None and
+                            identity_user != request.user):
                         log.info('Conflict finding user during FxA login. '
                                  'request.user: {}, identity_user: {}'.format(
                                      request.user.pk, identity_user.pk))

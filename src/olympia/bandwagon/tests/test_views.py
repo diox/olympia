@@ -267,7 +267,7 @@ class TestPrivacy(TestCase):
         r = self.client.get(self.url)
         eq_(r.status_code, 200)
         # TODO(cvan): Uncomment when bug 719512 gets fixed.
-        #eq_(pq(r.content)('.meta .view-stats').length, 1,
+        # eq_(pq(r.content)('.meta .view-stats').length, 1,
         #    'Add-on authors should be able to view stats')
 
     def test_private(self):
@@ -295,7 +295,7 @@ class TestPrivacy(TestCase):
         r = self.client.get(self.url)
         eq_(r.status_code, 200)
         # TODO(cvan): Uncomment when bug 719512 gets fixed.
-        #eq_(pq(r.content)('.meta .view-stats').length, 1,
+        # eq_(pq(r.content)('.meta .view-stats').length, 1,
         #    'Add-on authors (not just owners) should be able to view stats')
 
 
@@ -947,8 +947,8 @@ class AjaxTest(TestCase):
         self.other = UserProfile.objects.exclude(id=self.user.id)[0]
 
     def test_list_collections(self):
-        r = self.client.get(reverse('collections.ajax_list')
-                            + '?addon_id=3615',)
+        r = self.client.get(reverse('collections.ajax_list') +
+                            '?addon_id=3615',)
         doc = pq(r.content)
         eq_(doc('li.selected').attr('data-id'), '80')
 
