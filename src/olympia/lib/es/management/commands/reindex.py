@@ -8,6 +8,7 @@ from optparse import make_option
 
 from celery.task import control
 from celery_tasktree import task_with_callbacks, TaskTree
+from elasticsearch.exceptions import NotFoundError
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -61,7 +62,7 @@ def delete_indexes(indexes, stdout=sys.stdout):
 @task_with_callbacks
 def update_aliases(actions, stdout=sys.stdout):
     log('Rebuilding aliases with actions: %s' % actions, stdout=stdout)
-    ES.indices.update_aliases({'actions': actions}, ignore=404)
+    ES.indices.update_aliases({'actions': actions})
 
 
 @task_with_callbacks
@@ -120,6 +121,9 @@ class Command(BaseCommand):
                     help=('Do not ask for confirmation before wiping. '
                           'Default: False'),
                     default=False),
+        make_option('--only-install-mapping', action='store_true',
+                    help=('Only install new mapping, do not index data.'),
+                    default=False)
     )
 
     def handle(self, *args, **kwargs):
@@ -178,12 +182,17 @@ class Command(BaseCommand):
         for alias, module in modules.items():
             old_index = None
 
-            olds = ES.indices.get_aliases(alias, ignore=404)
-            for old_index in olds:
-                # Mark the index to be removed later.
-                to_remove.append(old_index)
-                # Mark the alias to be removed from that index.
-                add_alias_action('remove', old_index, alias)
+            try:
+                olds = ES.indices.get_aliases(alias)
+                for old_index in olds:
+                    # Mark the index to be removed later.
+                    to_remove.append(old_index)
+                    # Mark the alias to be removed from that index.
+                    add_alias_action('remove', old_index, alias)
+            except NotFoundError:
+                # If the alias dit not exist, ignore it, don't try to remove
+                # it.
+                pass
 
             # Create a new index, using the alias name with a timestamp.
             new_index = timestamp_index(alias)
@@ -198,9 +207,12 @@ class Command(BaseCommand):
                                   args=[new_index, old_index, alias])
             step2 = step1.add_task(create_new_index,
                                    args=[alias, new_index])
-            step3 = step2.add_task(index_data,
-                                   args=[alias, new_index])
-            last_action = step3
+            if kwargs.get('only_install_mapping'):
+                last_action = step2
+            else:
+                step3 = step2.add_task(index_data,
+                                       args=[alias, new_index])
+                last_action = step3
 
             # Adding new index to the alias.
             add_alias_action('add', new_index, alias)
