@@ -354,7 +354,7 @@ def _filter_search(request, qs, query, filters, sorting,
         ps = (amo.PLATFORM_DICT[query['platform']].id, amo.PLATFORM_ALL.id)
         # If we've selected "All Systems" don't filter by platform.
         if ps[0] != ps[1]:
-            qs = qs.filter(platform__in=ps)
+            qs = qs.filter(platforms__in=ps)
     if 'appver' in show:
         # Get a min version less than X.0.
         low = version_int(query['appver'])
@@ -378,7 +378,7 @@ def _filter_search(request, qs, query, filters, sorting,
         if 'cat' in show:
             qs = qs.filter(category=query['cat'])
     if 'tag' in show:
-        qs = qs.filter(tag=query['tag'])
+        qs = qs.filter(tags=query['tag'])
     if 'sort' in show:
         qs = qs.order_by(sorting[query['sort']])
     elif not query.get('q'):
@@ -435,8 +435,8 @@ def search(request, tag_name=None, template=None):
         del extra_sort[1]
 
     qs = (Addon.search_public().filter(app=APP.id)
-          .facet(tags={'terms': {'field': 'tag'}},
-                 platforms={'terms': {'field': 'platform'}},
+          .facet(tags={'terms': {'field': 'tags'}},
+                 platforms={'terms': {'field': 'platforms'}},
                  appversions={'terms':
                               {'field': 'appversion.%s.max' % APP.id}},
                  categories={'terms': {'field': 'category', 'size': 200}}))
