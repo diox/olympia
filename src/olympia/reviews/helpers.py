@@ -3,6 +3,8 @@ import jinja2
 import jingo
 from django.utils.translation import ugettext as _
 
+from rest_framework.permissions import BasePermission
+
 from olympia.access import acl
 from olympia.reviews.models import ReviewFlag
 
@@ -89,6 +91,15 @@ def user_can_delete_review(request, review):
             acl.is_editor(request, review.addon) or
             acl.action_allowed(request, 'Users', 'Edit') or
             acl.action_allowed(request, 'Addons', 'Edit')))
+
+
+class CanDeleteReviewPermission(BasePermission):
+    """A DRF permission class wrapping user_can_delete_review()."""
+    def has_permission(self, request, view):
+        return self.request.user.is_authenticated()
+
+    def has_object_permission(self, request, view, obj):
+        return user_can_delete_review(request, obj)
 
 
 @jingo.register.function

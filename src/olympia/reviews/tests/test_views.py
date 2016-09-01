@@ -9,7 +9,8 @@ from rest_framework.exceptions import ParseError
 
 from olympia.addons.utils import generate_addon_guid
 from olympia.amo import helpers
-from olympia.amo.tests import addon_factory, TestCase, MobileTest, user_factory
+from olympia.amo.tests import (
+    addon_factory, APITestClient, TestCase, MobileTest, user_factory)
 from olympia.access.models import Group, GroupUser
 from olympia.addons.models import Addon, AddonUser
 from olympia.devhub.models import ActivityLog
@@ -593,6 +594,8 @@ class TestMobileReviews(MobileTest, TestCase):
 
 
 class TestReviewViewSetGet(TestCase):
+    client_class = APITestClient
+
     def setUp(self):
         self.addon = addon_factory(
             guid=generate_addon_guid(), name=u'My Addôn', slug='my-addon')
@@ -730,3 +733,69 @@ class TestReviewViewSetGet(TestCase):
 
         response = self.client.get(self.url)
         assert response.status_code == 404
+
+
+class TestReviewViewSetPost(TestCase):
+    client_class = APITestClient
+
+    def setUp(self):
+        self.addon = addon_factory(
+            guid=generate_addon_guid(), name=u'My Addôn', slug='my-addon')
+        self.url = reverse(
+            'addon-review-list', kwargs={'addon_pk': self.addon.pk})
+
+    def test_post_anonymous(self):
+        response = self.client.post(self.url, {
+            'body': 'test body', 'title': None, 'rating': 5})
+        assert response.status_code == 401
+
+    def test_post_no_version(self):
+        self.user = user_factory()
+        self.client.login_api(self.user)
+        assert not Review.objects.exists()
+        response = self.client.post(self.url, {
+            'body': u'test bodyé', 'title': None, 'rating': 5})
+        assert response.status_code == 400
+
+    def test_post_version_string(self):
+        self.user = user_factory()
+        self.client.login_api(self.user)
+        assert not Review.objects.exists()
+        response = self.client.post(self.url, {
+            'body': u'test bodyé', 'title': None, 'rating': 5,
+            'version': self.addon.current_version.version})
+        assert response.status_code == 400
+
+    def test_post_logged_in(self):
+        self.user = user_factory()
+        self.client.login_api(self.user)
+        assert not Review.objects.exists()
+        response = self.client.post(self.url, {
+            'body': u'test bodyé', 'title': None, 'rating': 5,
+            'version': self.addon.current_version.pk})
+        assert response.status_code == 201, response.content
+        data = json.loads(response.content)
+        review = Review.objects.latest('pk')
+        assert review.pk == data['id']
+        assert review.body == data['body'] == u'test bodyé'
+        assert review.rating == data['rating'] == 5
+        assert review.user == self.user
+        assert review.title is None
+        assert data['title'] is None
+        assert review.reply_to is None
+        assert review.addon == self.addon
+        assert review.version == self.addon.current_version
+        assert data['version'] == review.version.version
+
+    def test_post_wrong_addon_id(self):
+        self.url = reverse(
+            'addon-review-list', kwargs={'addon_pk': self.addon.pk + 42})
+        self.user = user_factory()
+        self.client.login_api(self.user)
+        response = self.client.post(self.url, {
+            'body': 'test body', 'title': None, 'rating': 5})
+        assert response.status_code == 404
+
+    # try posting/editing on a deleted add-on 
+
+    # disallow author if it's not a reply...
