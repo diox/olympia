@@ -28,6 +28,7 @@ import mock
 import pytest
 from dateutil.parser import parse as dateutil_parser
 from rest_framework.views import APIView
+from rest_framework.test import APIClient
 from waffle.models import Flag, Sample, Switch
 
 from olympia import amo
@@ -246,6 +247,9 @@ class TestClient(Client):
             return partial(method, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         else:
             raise AttributeError
+
+
+class APITestClient(APIClient):
 
     def generate_api_token(self, user, **payload_overrides):
         """
