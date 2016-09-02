@@ -14,7 +14,7 @@ class BaseReviewSerializer(serializers.ModelSerializer):
     body = serializers.CharField(allow_null=True, required=False)
     title = serializers.CharField(allow_null=True, required=False)
     user = BaseUserSerializer(read_only=True)
-    version = PrimaryKeyRelatedField(queryset=Version.unfiltered)
+    version = PrimaryKeyRelatedField(queryset=Version.unfiltered.all())
 
     class Meta:
         model = Review
