@@ -206,7 +206,8 @@ def hide_disabled_files():
     # If an add-on or a file is disabled, it should be moved to
     # GUARDED_ADDONS_PATH so it's not publicly visible.
     q = (Q(version__addon__status=amo.STATUS_DISABLED) |
-         Q(version__addon__disabled_by_user=True))
+         Q(version__addon__disabled_by_user=True) |
+         Q(version__addon__is_listed=False))
     ids = (File.objects.filter(q | Q(status=amo.STATUS_DISABLED))
            .values_list('id', flat=True))
     for chunk in chunked(ids, 300):
@@ -222,7 +223,8 @@ def unhide_disabled_files():
     # makes sure guarded add-ons are supposed to be disabled.
     log = logging.getLogger('z.files.disabled')
     q = (Q(version__addon__status=amo.STATUS_DISABLED) |
-         Q(version__addon__disabled_by_user=True))
+         Q(version__addon__disabled_by_user=True) |
+         Q(version__addon__is_listed=False))
     files = set(File.objects.filter(q | Q(status=amo.STATUS_DISABLED))
                 .values_list('version__addon', 'filename'))
     for filepath in walkfiles(settings.GUARDED_ADDONS_PATH):

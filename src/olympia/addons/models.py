@@ -1544,18 +1544,24 @@ def watch_status(old_attr=None, new_attr=None, instance=None,
 
 
 @Addon.on_change
-def watch_disabled(old_attr=None, new_attr=None, instance=None, sender=None,
-                   **kwargs):
+def watch_changes_impacting_files(old_attr=None, new_attr=None, instance=None,
+                                  sender=None, **kwargs):
+    """Watch changes to disabled / listed state on Addon, and move files to the
+    right location if needed."""
     if old_attr is None:
         old_attr = {}
     if new_attr is None:
         new_attr = {}
     attrs = dict((k, v) for k, v in old_attr.items()
-                 if k in ('disabled_by_user', 'status'))
-    if Addon(**attrs).is_disabled and not instance.is_disabled:
+                 if k in ('disabled_by_user', 'is_listed', 'status'))
+
+    was_hidden = Addon(**attrs).is_disabled or not Addon(**attrs).is_listed
+    is_now_hidden = instance.is_disabled or not instance.is_listed
+
+    if was_hidden and not is_now_hidden:
         for f in File.objects.filter(version__addon=instance.id):
             f.unhide_disabled_file()
-    if instance.is_disabled and not Addon(**attrs).is_disabled:
+    elif not was_hidden and is_now_hidden:
         for f in File.objects.filter(version__addon=instance.id):
             f.hide_disabled_file()
 

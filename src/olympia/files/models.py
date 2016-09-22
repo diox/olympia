@@ -127,9 +127,12 @@ class File(OnChangeMixin, ModelBase):
         return storage.exists(self.mirror_file_path)
 
     def get_mirror(self, addon, attachment=False):
+        # FIXME: just changing the host is not enough for unlisted/disabled,
+        # also need to look in guarded_file_path?
         if attachment:
             host = posixpath.join(user_media_url('addons'), '_attachments')
-        elif addon.is_disabled or self.status == amo.STATUS_DISABLED:
+        elif (addon.is_disabled or not addon.is_listed or
+              self.status == amo.STATUS_DISABLED):
             host = settings.PRIVATE_MIRROR_URL
         else:
             host = user_media_url('addons')
@@ -315,8 +318,11 @@ class File(OnChangeMixin, ModelBase):
         """Returns the current path of the file, whether or not it is
         guarded."""
 
-        return (self.guarded_file_path if self.status == amo.STATUS_DISABLED
-                else self.file_path)
+        is_guarded = (self.status == amo.STATUS_DISABLED or
+                      self.addon.is_disabled or
+                      not self.addon.is_listed)
+
+        return self.guarded_file_path if is_guarded else self.file_path
 
     @property
     def extension(self):
@@ -338,11 +344,11 @@ class File(OnChangeMixin, ModelBase):
         if not self.filename:
             return
         src, dst = self.file_path, self.guarded_file_path
-        self.mv(src, dst, 'Moving disabled file: %s => %s')
+        self.mv(src, dst, 'Moving disabled/unlisted file: %s => %s')
         # Remove the file from the mirrors if necessary.
         if (self.mirror_file_path and
                 storage.exists(force_bytes(self.mirror_file_path))):
-            log.info('Unmirroring disabled file: %s'
+            log.info('Unmirroring disabled/unlisted file: %s'
                      % self.mirror_file_path)
             storage.delete(force_bytes(self.mirror_file_path))
 
@@ -350,7 +356,7 @@ class File(OnChangeMixin, ModelBase):
         if not self.filename:
             return
         src, dst = self.guarded_file_path, self.file_path
-        self.mv(src, dst, 'Moving undisabled file: %s => %s')
+        self.mv(src, dst, 'Moving undisabled/listed file: %s => %s')
         # Put files back on the mirrors if necessary.
         if storage.exists(self.file_path):
             destinations = [self.version.path_prefix]
@@ -358,7 +364,7 @@ class File(OnChangeMixin, ModelBase):
                 destinations.append(self.version.mirror_path_prefix)
             for dest in destinations:
                 dest = os.path.join(dest, nfd_str(self.filename))
-                log.info('Re-mirroring disabled/enabled file to %s' % dest)
+                log.info('Re-mirroring undisabled/listed file to %s' % dest)
                 copy_stored_file(self.file_path, dest)
 
     def copy_to_mirror(self):
@@ -492,6 +498,13 @@ def cleanup_file(sender, instance, **kw):
 @File.on_change
 def check_file(old_attr, new_attr, instance, sender, **kw):
     if kw.get('raw'):
+        return
+    # While an add-on is hidden (either because it's disabled or unlisted),
+    # we should not do anything in this function: all its files should have
+    # been hidden already regardless of the status property on the File
+    # instance.
+    addon = instance.addon
+    if addon.is_disabled or not addon.is_listed:
         return
     old, new = old_attr.get('status'), instance.status
     if new == amo.STATUS_DISABLED and old != amo.STATUS_DISABLED:
