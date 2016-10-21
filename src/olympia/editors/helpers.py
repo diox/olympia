@@ -1,6 +1,7 @@
 import datetime
 
 from django.conf import settings
+from django.db import router
 from django.template import Context, loader
 from django.utils.datastructures import SortedDict
 from django.utils.encoding import force_text
@@ -411,15 +412,19 @@ def get_position(addon):
         if not version:
             return False
 
-        q = version.current_queue
-        if not q:
+        queue_model = version.current_queue
+        if not queue_model:
             return False
 
-        mins_query = q.objects.filter(id=addon.id)
+        # The queries made by this function are particularly nasty, so we want
+        # to avoid running them on master.
+        dbname = router.db_for_read(queue_model)
+        base_qs = queue_model.objects.using(dbname)
+        mins_query = base_qs.filter(id=addon.id)
         if mins_query.count() > 0:
             mins = mins_query[0].waiting_time_min
-            pos = q.objects.having('waiting_time_min >=', mins).count()
-            total = q.objects.count()
+            pos = base_qs.having('waiting_time_min >=', mins).count()
+            total = base_qs.count()
             return dict(mins=mins, pos=pos, total=total)
 
     return False

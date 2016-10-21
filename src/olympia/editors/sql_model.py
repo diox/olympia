@@ -2,7 +2,7 @@ import copy
 import re
 
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.db import connection
+from django.db import connections
 from django.db.models import Q
 from django.db.models.sql.query import AND, OR
 from django.utils.tree import Node
@@ -49,6 +49,8 @@ class RawSQLManager(object):
             self.base_query['limit'] = []
         if '_args' not in self.base_query:
             self.base_query['_args'] = {}
+        if '_using' not in self.base_query:
+            self.base_query['_using'] = 'default'
         self._cursor = None
         self._record_set = []
 
@@ -205,6 +207,11 @@ class RawSQLManager(object):
         stmt = self._compile(self.base_query)
         return stmt
 
+    def using(self, db_name):
+        clone = self._clone()
+        clone.base_query['_using'] = db_name
+        return clone
+
     def _clone(self):
         return self.__class__(self.sql_model,
                               base_query=copy.deepcopy(self.base_query))
@@ -319,7 +326,7 @@ class RawSQLManager(object):
 
     def _execute(self, sql):
         self._record_set = []
-        self._cursor = connection.cursor()
+        self._cursor = connections[self.base_query['_using']].cursor()
         self._cursor.execute(sql, self.base_query['_args'])
 
     def _param(self, val):

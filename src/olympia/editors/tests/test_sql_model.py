@@ -5,17 +5,21 @@ Currently these tests are coupled tighly with MySQL
 """
 from datetime import datetime
 
-from django.db import connection, models
+import django
+from django.conf import settings
+from django.db import connections, models, reset_queries
 from django.db.models import Q
+from django.test.utils import override_settings
 
 import pytest
+from mock import patch
 
 from olympia.amo.tests import BaseTestCase
 from olympia.editors.sql_model import RawSQLModel
 
 
 def execute_all(statements):
-    cursor = connection.cursor()
+    cursor = connections['default'].cursor()
     for sql in statements:
         if not sql.strip():
             continue
@@ -118,6 +122,41 @@ class TestSQLModel(BaseTestCase):
     def test_all(self):
         assert sorted([s.category for s in Summary.objects.all()]) == (
             ['apparel', 'safety'])
+
+    def test_using(self):
+        qs = Summary.objects
+        assert qs.base_query['_using'] == 'default'
+        qs2 = qs.using('not-default')
+        assert qs.base_query['_using'] == 'default'
+        assert qs2.base_query['_using'] == 'not-default'
+
+    def reset_queries(self):
+        # Django does a separate SQL query once per connection on MySQL, see
+        # https://code.djangoproject.com/ticket/16809 ; This pollutes the
+        # queries counts, so we initialize a connection cursor early ourselves
+        # before resetting queries to avoid this.
+        for con in django.db.connections:
+            connections[con].cursor()
+        reset_queries()
+
+    @override_settings(DEBUG=True)
+    def test_execute_on_different_db(self):
+        mocked_dbs = {
+            'default': settings.DATABASES['default'],
+            'slave-1': settings.DATABASES['default'].copy(),
+            'slave-2': settings.DATABASES['default'].copy(),
+        }
+
+        with patch.object(django.db.connections, 'databases', mocked_dbs):
+            # Make sure we are in a clean environnement.
+            self.reset_queries()
+
+            qs = Summary.objects.using('slave-2')
+            result = sorted([s.category for s in qs.all()])
+            assert len(connections['default'].queries) == 0
+            assert len(connections['slave-1'].queries) == 0
+            assert len(connections['slave-2'].queries) == 1
+            assert result == ['apparel', 'safety']
 
     def test_count(self):
         assert Summary.objects.all().count() == 2
