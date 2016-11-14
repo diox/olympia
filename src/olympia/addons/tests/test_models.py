@@ -1683,13 +1683,9 @@ class TestGetVersion(TestCase):
         File.objects.create(version=version, status=status)
         return version
 
-    def test_public_new_nominated_version(self):
-        self.new_version(amo.STATUS_NOMINATED)
-        assert self.addon.find_latest_public_listed_version() == self.version
-
     def test_public_new_public_version(self):
-        v = self.new_version(amo.STATUS_PUBLIC)
-        assert self.addon.find_latest_public_listed_version() == v
+        version = self.new_version(amo.STATUS_PUBLIC)
+        assert self.addon.find_latest_public_listed_version() == version
 
     def test_public_new_unreviewed_version(self):
         self.new_version(amo.STATUS_AWAITING_REVIEW)
