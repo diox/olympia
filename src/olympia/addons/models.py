@@ -205,7 +205,7 @@ class AddonQuerySet(caching.CachingQuerySet):
 
 class AddonManager(ManagerBase):
 
-    def __init__(self, include_deleted=False, include_unlisted=False):
+    def __init__(self, include_deleted=False, include_unlisted=True):
         # DO NOT change the default value of include_deleted and
         # include_unlisted unless you've read through the comment just above
         # the Addon managers declaration/instantiation and understand the
@@ -395,7 +395,7 @@ class Addon(OnChangeMixin, ModelBase):
     # default. This is also why it's not repeated for 'objects' below.
     unfiltered = AddonManager(include_deleted=True, include_unlisted=True)
     with_unlisted = AddonManager(include_unlisted=True)
-    objects = AddonManager()
+    objects = AddonManager(include_unlisted=True)
 
     class Meta:
         db_table = 'addons'
