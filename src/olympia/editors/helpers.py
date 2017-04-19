@@ -591,8 +591,8 @@ class ReviewBase(object):
         if any(file_.is_webextension for file_ in self.files):
             Tag(tag_text='firefox57').save_tag(self.addon)
 
-        # Reset approvals counter if we have a request (it means it's an
-        # human doing the review) otherwise increment it as it's an automatic
+        # Reset approvals counter if we have a request (it means it's a human
+        # doing the review) otherwise increment it as it's an automatic
         # approval.
         if self.request:
             AddonApprovalsCounter.reset_for_addon(addon=self.addon)
