@@ -656,19 +656,22 @@ class TestAddonModels(TestCase):
         assert len(mail.outbox) == 1
 
     def test_incompatible_latest_apps(self):
-        a = Addon.objects.get(pk=3615)
-        assert a.incompatible_latest_apps() == []
+        addon = Addon.objects.get(pk=3615)
+        assert addon.incompatible_latest_apps() == []
 
         av = ApplicationsVersions.objects.get(pk=47881)
         av.max = AppVersion.objects.get(pk=97)  # Firefox 2.0
         av.save()
 
-        a = Addon.objects.get(pk=3615)
-        assert a.incompatible_latest_apps() == [amo.FIREFOX]
+        addon = Addon.objects.get(pk=3615)
+        assert addon.incompatible_latest_apps() == []
+
+        addon.current_version.files.update(strict_compatibility=True)
+        assert addon.incompatible_latest_apps() == [amo.FIREFOX]
 
         # Check a search engine addon.
-        a = Addon.objects.get(pk=4594)
-        assert a.incompatible_latest_apps() == []
+        addon = Addon.objects.get(pk=4594)
+        assert addon.incompatible_latest_apps() == []
 
     def test_incompatible_asterix(self):
         av = ApplicationsVersions.objects.get(pk=47881)

@@ -1250,12 +1250,24 @@ class Addon(OnChangeMixin, ModelBase):
         return self.type not in amo.NO_COMPAT
 
     def incompatible_latest_apps(self):
-        """Returns a list of applications with which this add-on is
-        incompatible (based on the latest version of each app).
-
-        """
-        return [app for app, ver in self.compatible_apps.items() if ver and
+        """Returns a list of applications with which this add-on is strictly
+        incompatible (based on the latest version of each app and whether
+        strict compatibility is in effect)."""
+        if not self.current_version:
+            # No current version, so no compatibility info yet.
+            incompat = []
+        elif not self.current_version.files.filter(
+                strict_compatibility=True).exists():
+            # No files with strict compatibility exist on the current version,
+            # so we consider the add-on compatible.
+            incompat = []
+        else:
+            # strict compatibility is in effect, so look at the max version set
+            # and compare it to the app's latest version.
+            incompat = [
+                app for app, ver in self.compatible_apps.items() if ver and
                 version_int(ver.max.version) < version_int(app.latest_version)]
+        return incompat
 
     def has_author(self, user):
         """True if ``user`` is an author of the add-on."""

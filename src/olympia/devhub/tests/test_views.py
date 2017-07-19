@@ -334,6 +334,11 @@ class TestUpdateCompatibility(TestCase):
         versions.max = AppVersion.objects.get(version='2.0')
         versions.save()
         doc = pq(self.client.get(self.url).content)
+        assert not doc('.item[data-addonid="3615"] .tooltip.compat-error')
+
+        addon = Addon.objects.get(pk=3615)
+        addon.current_version.files.update(strict_compatibility=True)
+        doc = pq(self.client.get(self.url).content)
         assert doc('.item[data-addonid="3615"] .tooltip.compat-error')
 
     def test_incompat_android(self):
@@ -343,6 +348,11 @@ class TestUpdateCompatibility(TestCase):
         av.application = amo.ANDROID.id
         av.max = appver
         av.save()
+        doc = pq(self.client.get(self.url).content)
+        assert not doc('.item[data-addonid="3615"] .tooltip.compat-error')
+
+        addon = Addon.objects.get(pk=3615)
+        addon.current_version.files.update(strict_compatibility=True)
         doc = pq(self.client.get(self.url).content)
         assert doc('.item[data-addonid="3615"] .tooltip.compat-error')
 
