@@ -66,7 +66,7 @@ var installButton = function() {
         search = $this.hasattr('data-search'),
         no_compat_necessary = $this.hasattr('data-no-compat-necessary'),
         accept_eula = $this.hasClass('accept'),
-        compatible = $this.attr('data-is-compatible') == 'true',
+        compatible = $this.attr('data-is-compatible-by-default') == 'true',
         compatible_app = $this.attr('data-is-compatible-app') == 'true',
         has_overrides = $this.hasattr('data-compat-overrides'),
         versions_url = $this.attr('data-versions'),
@@ -79,7 +79,7 @@ var installButton = function() {
                   msg: z.appMatchesUserAgent ? addto : gettext('Download Now')},
         appSupported = z.appMatchesUserAgent && min && max,
         $body = $(document.body),
-        $d2c_reasons = $this.closest('.install-shell').find('.d2c-reasons-popup ul'),
+        $d2c_reasons = $this.closest('.install-shell').find('.d2c-reasons-popup'),
         olderBrowser,
         newerBrowser;
 
@@ -119,12 +119,10 @@ var installButton = function() {
     // Default to compatible checking.
     if (is_d2c && compatible) {
         if (!compatible_app) {
-            $d2c_reasons.append($('<li>', {text: gettext('Add-on has not been updated to support default-to-compatible.')}));
             compatible = false;
         }
         // TODO: Figure out if this needs to handle other apps.
         if (z.browserVersion !== 0 && VersionCompare.compareVersions(z.browserVersion, '10.0') < 0) {
-            $d2c_reasons.append($('<li>', {text: gettext('You need to be using Firefox 10.0 or higher.')}));
             compatible = false;
         }
         // If it's still compatible, check the overrides.
@@ -136,7 +134,6 @@ var installButton = function() {
                 if (VersionCompare.compareVersions(z.browserVersion, _min) >= 0 &&
                     VersionCompare.compareVersions(z.browserVersion, _max) <= 0) {
                     compatible = false;
-                    $d2c_reasons.append($('<li>', {text: gettext('Mozilla has marked this version as incompatible with your Firefox version.')}));
                     return;
                 }
             });
@@ -257,9 +254,6 @@ var installButton = function() {
         var nocompat = addExtra(function() {
             return message('not_compatible')();
         });
-        var nocompat_noreason = addExtra(function() {
-            return message('not_compatible_no_reasons')();
-        });
         var merge = addExtra(function() {
             // Prepend the platform message to the version message.  We only
             // want to move the installer when we're looking at an older
@@ -314,9 +308,7 @@ var installButton = function() {
                 } else if (!compatible) {
                     // Show compatibility message.
                     params.versions_url = versions_url;
-                    params.reasons = $d2c_reasons.html();
-
-                    $button.addPopup(params.reasons ? nocompat : nocompat_noreason);
+                    $button.addPopup(nocompat);
                 } else {
                     // Bad version.
                     $button.addPopup(vmsg);

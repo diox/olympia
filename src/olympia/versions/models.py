@@ -342,32 +342,16 @@ class Version(OnChangeMixin, ModelBase):
         return all_plats
 
     @cached_property
-    def is_compatible(self):
-        """Returns tuple of compatibility and reasons why if not.
-
-        Server side conditions for determining compatibility are:
-            * The add-on is an extension (not a theme, app, etc.)
-            * Has not opted in to strict compatibility.
-            * Does not use binary_components in chrome.manifest.
-
-        Note: The lowest maxVersion compat check needs to be checked
-              separately.
-        Note: This does not take into account the client conditions.
-        """
+    def is_compatible_by_default(self):
+        """Returns whether or not the add-on is compatible by default."""
         compat = True
-        reasons = []
         if self.addon.type != amo.ADDON_EXTENSION:
             compat = False
-            # TODO: We may want this. For now we think it may be confusing.
-            # reasons.append(ugettext('Add-on is not an extension.'))
-        if self.files.filter(binary_components=True).exists():
+        if self.files.filter(
+                models.Q(binary_components=True) |
+                models.Q(strict_compatibility=True)).exists():
             compat = False
-            reasons.append(ugettext('Add-on uses binary components.'))
-        if self.files.filter(strict_compatibility=True).exists():
-            compat = False
-            reasons.append(ugettext(
-                'Add-on has opted into strict compatibility checking.'))
-        return (compat, reasons)
+        return compat
 
     def is_compatible_app(self, app):
         """Returns True if the provided app passes compatibility conditions."""
@@ -766,7 +750,7 @@ class ApplicationsVersions(caching.base.CachingMixin, models.Model):
         return unicode(amo.APPS_ALL[self.application].pretty)
 
     def __unicode__(self):
-        if (self.version.is_compatible[0] and
+        if (self.version.is_compatible_by_default and
                 self.version.is_compatible_app(amo.APP_IDS[self.application])):
             return ugettext(u'{app} {min} and later').format(
                 app=self.get_application_display(),

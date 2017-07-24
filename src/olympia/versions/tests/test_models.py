@@ -402,39 +402,38 @@ class TestVersion(TestCase):
             is_addon_public.return_value = False
             assert not version.is_public()
 
-    def test_is_compatible(self):
+    def test_is_compatible_by_default(self):
         # Base test for fixture before the rest.
         addon = Addon.objects.get(id=3615)
         version = version_factory(addon=addon)
-        assert version.is_compatible[0]
+        assert version.is_compatible_by_default
         assert version.is_compatible_app(amo.FIREFOX)
 
-    def test_is_compatible_type(self):
-        # Only ADDON_EXTENSIONs should be compatible.
+    def test_is_compatible_by_default_type(self):
+        # Only ADDON_EXTENSIONs should be compatible by default.
         addon = Addon.objects.get(id=3615)
         version = version_factory(addon=addon)
         addon.update(type=amo.ADDON_PERSONA)
-        assert not version.is_compatible[0]
+        assert not version.is_compatible_by_default
         assert version.is_compatible_app(amo.FIREFOX)
 
-    def test_is_compatible_strict_opt_in(self):
-        # Add-ons opting into strict compatibility should not be compatible.
+    def test_is_compatible_by_default_strict_opt_in(self):
+        # Add-ons opting into strict compatibility should not be compatible by
+        # default (doh!).
         addon = Addon.objects.get(id=3615)
         version = version_factory(addon=addon)
         file = version.all_files[0]
         file.update(strict_compatibility=True)
-        assert not version.is_compatible[0]
-        assert 'strict compatibility' in ''.join(version.is_compatible[1])
+        assert not version.is_compatible_by_default
         assert version.is_compatible_app(amo.FIREFOX)
 
-    def test_is_compatible_binary_components(self):
-        # Add-ons using binary components should not be compatible.
+    def test_is_compatible_by_default_binary_components(self):
+        # Add-ons using binary components should not be compatible by default.
         addon = Addon.objects.get(id=3615)
         version = version_factory(addon=addon)
         file = version.all_files[0]
         file.update(binary_components=True)
-        assert not version.is_compatible[0]
-        assert 'binary components' in ''.join(version.is_compatible[1])
+        assert not version.is_compatible_by_default
         assert version.is_compatible_app(amo.FIREFOX)
 
     def test_is_compatible_app_max_version(self):
