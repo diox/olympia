@@ -6,6 +6,7 @@ import mock
 from olympia import amo
 from olympia.addons.models import Addon
 from olympia.amo import search
+from olympia.amo.paginator import ESPaginator
 from olympia.amo.tests import TestCase, ESTestCaseWithAddons
 from olympia.tags.models import Tag
 
@@ -433,10 +434,10 @@ class TestPaginator(ESTestCaseWithAddons):
     def test_es_paginator(self):
         qs = Addon.search()
         pager = amo.utils.paginate(self.request, qs)
-        assert isinstance(pager.paginator, amo.utils.ESPaginator)
+        assert isinstance(pager.paginator, ESPaginator)
 
     def test_validate_number(self):
-        p = amo.utils.ESPaginator(Addon.search(), 20)
+        p = ESPaginator(Addon.search(), 20)
         # A bad number raises an exception.
         with self.assertRaises(paginator.PageNotAnInteger):
             p.page('a')
@@ -445,7 +446,7 @@ class TestPaginator(ESTestCaseWithAddons):
         p.page(99)
 
     def test_count(self):
-        p = amo.utils.ESPaginator(Addon.search(), 20)
+        p = ESPaginator(Addon.search(), 20)
         assert p._count is None
         p.page(1)
         assert p.count == Addon.search().count()

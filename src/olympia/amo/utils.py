@@ -42,8 +42,8 @@ from PIL import Image
 from validator import unicodehelper
 from rest_framework.utils.encoders import JSONEncoder
 
-from olympia.amo import search
-from olympia.amo import ADDON_ICON_SIZES
+from olympia.amo import ADDON_ICON_SIZES, search
+from olympia.amo.paginator import ESPaginator
 from olympia.amo.urlresolvers import linkify_with_outgoing, reverse
 from olympia.translations.models import Translation
 from olympia.users.models import UserNotification
@@ -644,27 +644,6 @@ def get_email_backend(real_email=False):
     else:
         backend = 'olympia.amo.mail.DevEmailBackend'
     return django.core.mail.get_connection(backend)
-
-
-class ESPaginator(paginator.Paginator):
-    """A better paginator for search results."""
-    # The normal Paginator does a .count() query and then a slice. Since ES
-    # results contain the total number of results, we can take an optimistic
-    # slice and then adjust the count.
-    def page(self, number):
-        # Fake num_pages so it looks like we can have results.
-        self._num_pages = float('inf')
-        number = self.validate_number(number)
-        self._num_pages = None
-
-        bottom = (number - 1) * self.per_page
-        top = bottom + self.per_page
-        page = paginator.Page(self.object_list[bottom:top], number, self)
-
-        # Force the search to evaluate and then attach the count.
-        list(page.object_list)
-        self._count = page.object_list.count()
-        return page
 
 
 @contextlib.contextmanager
