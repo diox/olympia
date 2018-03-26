@@ -1,4 +1,5 @@
   <div class="addon-info-and-previews">
+    {% if addon.type == amo.ADDON_STATICTHEME %}
     <div id="addon-theme-previews-wrapper">
       <div>
         {% with previews = version.previews.all() if version else [] %}
@@ -21,6 +22,7 @@
         {% endfor %}
       </div>
     </div>
+    {% else %}
     <div class="addon-previews">
       {% if addon.all_previews %}
         {% with preview=addon.all_previews[0] %}
@@ -33,7 +35,8 @@
         <img class="screenshot thumbnail" src="{{ addon.thumbnail_url }}"
           alt="" width="200" height="150" />
       {% endif %}
-    </div>{# /secondary #}
+    </div>{# /addon-previews #}
+    {% endif %}
 
     <div class="addon-info">
       <p{{ addon.summary|locale_html }}>{{ addon.summary|nl2br }}</p>
