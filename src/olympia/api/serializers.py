@@ -38,13 +38,25 @@ class BaseESSerializer(ModelSerializer):
         return fields
 
     def to_representation(self, data):
+        # 'explain' can be set by the view in context if it wants debugging
+        # information. If set to a truthy value the view needs to use
+        # .extra(explain=True) on the Search queryset or it will cause an
+        # error when we try to access the explanation data.
+        explain = self.context.get('explain')
         # Support `Hit` instances to allow passing in ElasticSearch
         # results directly into the serializer.
         if isinstance(data, Hit):
+            if explain:
+                score = data.meta['score']
+                explanation = data.meta['explanation'].to_dict()
             data = data.to_dict()
 
         obj = self.fake_object(data)
-        return super(BaseESSerializer, self).to_representation(obj)
+        result = super(BaseESSerializer, self).to_representation(obj)
+        if explain:
+            result['_score'] = score
+            result['_explanation'] = explanation
+        return result
 
     def fake_object(self, data):
         """

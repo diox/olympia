@@ -659,14 +659,25 @@ class AddonSearchView(ListAPIView):
     permission_classes = []
     serializer_class = ESAddonSerializer
 
+    def is_explain_enabled(self):
+        return self.request.GET.get('explain') in ('1', 'true', 'True')
+
+    def get_serializer_context(self):
+        context = super(
+            AddonSearchView, self).get_serializer_context()
+        context['explain'] = self.is_explain_enabled()
+        return context
+
     def get_queryset(self):
-        qset = Search(
+        queryset = Search(
             using=amo.search.get_es(),
             index=AddonIndexer.get_index_alias(),
             doc_type=AddonIndexer.get_doctype_name()).extra(
                 _source={'excludes': AddonIndexer.hidden_fields})
 
-        return qset
+        if self.is_explain_enabled():
+            queryset = queryset.extra(explain=True)
+        return queryset
 
     @classmethod
     def as_view(cls, **kwargs):
