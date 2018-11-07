@@ -314,11 +314,10 @@ class AddonIndexer(BaseSearchIndexer):
             data['has_theme_rereview'] = None
 
         data['app'] = [app.id for app in obj.compatible_apps.keys()]
-        # Boost by the number of users on a logarithmic scale.
-        data['boost'] = float(data['average_daily_users'] ** .2)
-        # Quadruple the boost if the add-on is public.
-        if (obj.status == amo.STATUS_PUBLIC and not obj.is_experimental and
-                'boost' in data):
+        # Boost by the number of users on a logarithmic scale (add +1 to make
+        # sure it's always > 0), then quadruple it if the add-on is public.
+        data['boost'] = float((data['average_daily_users'] + 1) ** .15)
+        if obj.is_public() and not obj.is_experimental:
             data['boost'] = float(max(data['boost'], 1) * 4)
         # We can use all_categories because the indexing code goes through the
         # transformer that sets it.
