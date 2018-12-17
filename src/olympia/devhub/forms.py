@@ -631,8 +631,6 @@ class DescribeForm(AkismetSpamCheckFormMixin, AddonFormBase):
                   'requires_payment')
 
     def __init__(self, *args, **kw):
-        kw['initial'] = {
-            'has_priv': self._has_field('privacy_policy', kw['instance'])}
         super(DescribeForm, self).__init__(*args, **kw)
         content_waffle = waffle.switch_is_active('content-optimization')
         if not content_waffle or self.instance.type != amo.ADDON_EXTENSION:
@@ -643,18 +641,6 @@ class DescribeForm(AkismetSpamCheckFormMixin, AddonFormBase):
                 validator for validator in description.validators
                 if not isinstance(validator, MinLengthValidator)]
             description.required = False
-
-    def _has_field(self, name, instance=None):
-        # If there's a policy in any language, this addon has a policy.
-        n = getattr(instance or self.instance, u'%s_id' % name)
-        return any(map(bool, Translation.objects.filter(id=n)))
-
-    def save(self, commit=True):
-        obj = super(DescribeForm, self).save(commit)
-        if not self.cleaned_data['has_priv']:
-            delete_translation(self.instance, 'privacy_policy')
-
-        return obj
 
 
 class CombinedNameSummaryCleanMixin(object):
