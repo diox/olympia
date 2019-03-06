@@ -1193,7 +1193,6 @@ CELERY_TASK_ROUTES = {
     # Stats
     'olympia.stats.tasks.index_collection_counts': {'queue': 'stats'},
     'olympia.stats.tasks.index_download_counts': {'queue': 'stats'},
-    'olympia.stats.tasks.index_theme_user_counts': {'queue': 'stats'},
     'olympia.stats.tasks.index_update_counts': {'queue': 'stats'},
     'olympia.stats.tasks.update_global_totals': {'queue': 'stats'},
 

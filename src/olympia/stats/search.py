@@ -108,14 +108,6 @@ def extract_download_count(dl):
             '_id': '{0}-{1}'.format(dl.addon_id, dl.date)}
 
 
-def extract_theme_user_count(user_count):
-    return {'addon': user_count.addon_id,
-            'date': user_count.date,
-            'count': user_count.count,
-            'id': user_count.id,
-            '_id': '{0}-{1}'.format(user_count.addon_id, user_count.date)}
-
-
 def get_all_app_versions():
     vals = AppVersion.objects.values_list('application', 'version')
     rv = collections.defaultdict(list)

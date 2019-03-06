@@ -45,7 +45,6 @@ from olympia.files.utils import (
 from olympia.lib.crypto.signing import sign_file
 from olympia.lib.es.utils import index_objects
 from olympia.ratings.models import Rating
-from olympia.stats.utils import migrate_theme_update_count
 from olympia.tags.models import AddonTag, Tag
 from olympia.translations.models import Translation
 from olympia.users.models import UserProfile
@@ -668,11 +667,6 @@ def add_static_theme_from_lwt(lwt):
     [alog.transfer(addon) for alog in addonlog_qs.iterator()]
     timer.log_interval('8.move_activity_logs')
 
-    # Copy the ADU statistics - the raw(ish) daily UpdateCounts for stats
-    # dashboard and future update counts, and copy the average_daily_users.
-    # hotness will be recalculated by the deliver_hotness() cron in a more
-    # reliable way that we could do, so skip it entirely.
-    migrate_theme_update_count(lwt, addon)
     addon_updates.update(
         average_daily_users=lwt.persona.popularity or 0,
         hotness=0)
