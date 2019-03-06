@@ -4,14 +4,32 @@ dist: xenial
 python:
   - 2.7
 
+addons:
+  apt:
+    packages: &global_deps
+      - cmake
+      - swig
+      - gettext
+      - librsvg2-bin
+      - pngcrush
+      - uuid
+
 jobs:
   fast_finish: true
   include:
     - { env: TOXENV=codestyle }
     - { env: TOXENV=docs }
     - { env: TOXENV=assets }
-    - { env: TOXENV=es }
     - { env: TOXENV=addons-versions-and-files }
+    - env: TOXENV=es ES_VERSION=5.x
+      addons:
+          apt:
+            sources:
+              - sourceline: 'deb https://artifacts.elastic.co/packages/5.x/apt stable main'
+                key_url: 'https://packages.elastic.co/GPG-KEY-elasticsearch'
+            packages:
+              - *global_deps
+              - elasticsearch
     - { env: TOXENV=devhub }
     - { env: TOXENV=reviewers-and-zadmin }
     - { env: TOXENV=accounts-users-and-ratings }
@@ -20,8 +38,27 @@ jobs:
     - { python: 3.6, env: TOXENV=codestyle}
     - { python: 3.6, env: TOXENV=docs }
     - { python: 3.6, env: TOXENV=assets }
-    - { python: 3.6, env: TOXENV=es }
     - { python: 3.6, env: TOXENV=addons-versions-and-files }
+    - env: TOXENV=es ES_VERSION=5.x
+      python: 3.6
+      addons:
+          apt:
+            sources:
+              - sourceline: 'deb https://artifacts.elastic.co/packages/5.x/apt stable main'
+                key_url: 'https://packages.elastic.co/GPG-KEY-elasticsearch'
+            packages:
+              - *global_deps
+              - elasticsearch
+    - env: TOXENV=es ES_VERSION=6.x
+      python: 3.6
+      addons:
+          apt:
+            sources:
+              - sourceline: 'deb https://artifacts.elastic.co/packages/6.x/apt stable main'
+                key_url: 'https://packages.elastic.co/GPG-KEY-elasticsearch'
+            packages:
+              - *global_deps
+              - elasticsearch
     - { python: 3.6, env: TOXENV=devhub }
     - { python: 3.6, env: TOXENV=reviewers-and-zadmin }
     - { python: 3.6, env: TOXENV=accounts-users-and-ratings }
@@ -39,19 +76,6 @@ cache:
   directories:
     - node_modules
     - $HOME/.gimme
-
-addons:
-  apt:
-    sources:
-      - elasticsearch-5.x
-    packages:
-      - cmake
-      - swig
-      - elasticsearch
-      - gettext
-      - librsvg2-bin
-      - pngcrush
-      - uuid
 
 services:
   - mysql
