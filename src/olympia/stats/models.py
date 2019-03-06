@@ -61,50 +61,6 @@ class UpdateCount(StatsSearchMixin, models.Model):
         # * KEY `addon_date_idx` (`addon_id`,`date`)
 
 
-class ThemeUpdateCountManager(models.Manager):
-
-    def get_range_days_avg(self, start, end, *extra_fields):
-        """Return a a ValuesListQuerySet containing the addon_id and popularity
-        for each theme where popularity is the average number of users (count)
-        over the given range of days passed as start / end arguments.
-
-        If extra_fields are passed, then the list of fields is returned in the
-        queryset, inserted after addon_id but before popularity."""
-        return (self.values_list('addon_id', *extra_fields)
-                    .filter(date__range=[start, end])
-                    .annotate(avg=models.Avg('count')))
-
-
-class ThemeUpdateCount(StatsSearchMixin, models.Model):
-    """Daily users taken from the ADI data (coming from Hive)."""
-    id = PositiveAutoField(primary_key=True)
-    addon = models.ForeignKey('addons.Addon', on_delete=models.CASCADE)
-    count = models.PositiveIntegerField()
-    date = models.DateField()
-
-    objects = ThemeUpdateCountManager()
-
-    class Meta:
-        db_table = 'theme_update_counts'
-
-
-class ThemeUpdateCountBulk(models.Model):
-    """Used by the update_theme_popularity_movers command for perf reasons.
-
-    First bulk inserting all the averages over the last week and last three
-    weeks in this table allows us to bulk update (instead of running an update
-    per Persona).
-
-    """
-    id = PositiveAutoField(primary_key=True)
-    persona_id = models.PositiveIntegerField()
-    popularity = models.PositiveIntegerField()
-    movers = models.FloatField()
-
-    class Meta:
-        db_table = 'theme_update_counts_bulk'
-
-
 class GlobalStat(models.Model):
     id = PositiveAutoField(primary_key=True)
     name = models.CharField(max_length=255)
@@ -115,19 +71,3 @@ class GlobalStat(models.Model):
         db_table = 'global_stats'
         unique_together = ('name', 'date')
         get_latest_by = 'date'
-
-
-class ThemeUserCount(StatsSearchMixin, models.Model):
-    """Theme popularity (weekly average of users).
-
-    This is filled in by a cron job reading the popularity from the theme
-    (Persona).
-
-    """
-    addon = models.ForeignKey('addons.Addon', on_delete=models.CASCADE)
-    count = models.PositiveIntegerField()
-    date = models.DateField()
-
-    class Meta:
-        db_table = 'theme_user_counts'
-        index_together = ('date', 'addon')

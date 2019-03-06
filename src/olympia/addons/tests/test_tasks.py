@@ -30,7 +30,7 @@ from olympia.constants.categories import CATEGORIES
 from olympia.files.models import FileUpload
 from olympia.files.utils import id_to_path
 from olympia.ratings.models import Rating
-from olympia.stats.models import ThemeUpdateCount, UpdateCount
+from olympia.stats.models import UpdateCount
 from olympia.tags.models import Tag
 from olympia.users.models import UserProfile
 from olympia.versions.models import License, VersionPreview
@@ -230,13 +230,6 @@ class TestAddStaticThemeFromLwt(TestCase):
         rating = Rating.objects.create(
             addon=persona, version=persona.current_version, user=rating_user,
             rating=2, body=u'fooooo', user_responsible=rating_user)
-        ThemeUpdateCount.objects.create(
-            addon_id=persona.id, date=datetime(2018, 1, 1), count=123)
-        ThemeUpdateCount.objects.create(
-            addon_id=persona.id, date=datetime(2018, 2, 1), count=456)
-        # Create a count for an addon that shouldn't be migrated too.
-        ThemeUpdateCount.objects.create(
-            addon_id=addon_factory().id, date=datetime(2018, 2, 1), count=45)
         # And add it to a collection
         collection = collection_factory()
         collection.add_addon(persona)
@@ -273,13 +266,6 @@ class TestAddStaticThemeFromLwt(TestCase):
         Rating.objects.create(
             addon=addon_factory(), user=rating_user,
             rating=4, body=u'tgffd', user_responsible=rating_user)
-        ThemeUpdateCount.objects.create(
-            addon_id=persona.id, date=datetime(2018, 1, 1), count=123)
-        ThemeUpdateCount.objects.create(
-            addon_id=persona.id, date=datetime(2018, 2, 1), count=456)
-        # Create a count for an addon that shouldn't be migrated too.
-        ThemeUpdateCount.objects.create(
-            addon_id=addon_factory().id, date=datetime(2018, 2, 1), count=45)
 
         static_theme = add_static_theme_from_lwt(persona)
 

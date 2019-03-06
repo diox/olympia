@@ -192,32 +192,5 @@
             "locales": "{\"el\": 400, \"es-MX\": 400, \"en-US\": 300}",
             "date": "2007-01-01"
         }
-    },
-    {
-        "pk": 1,
-        "model": "stats.themeusercount",
-        "fields": {
-            "addon": 6,
-            "count": 1000,
-            "date": "2009-06-01"
-        }
-    },
-    {
-        "pk": 2,
-        "model": "stats.themeusercount",
-        "fields": {
-            "addon": 6,
-            "count": 1500,
-            "date": "2009-06-02"
-        }
-    },
-    {
-        "pk": 3,
-        "model": "stats.themeusercount",
-        "fields": {
-            "addon": 6,
-            "count": 10,
-            "date": "2007-01-01"
-        }
     }
 ]

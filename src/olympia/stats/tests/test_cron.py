@@ -9,7 +9,7 @@ from olympia import amo
 from olympia.amo.tests import TestCase, addon_factory, version_factory
 from olympia.stats import cron, tasks
 from olympia.stats.models import (
-    DownloadCount, GlobalStat, ThemeUserCount, UpdateCount)
+    DownloadCount, GlobalStat, UpdateCount)
 
 
 class TestGlobalStats(TestCase):
@@ -101,8 +101,6 @@ class TestIndexStats(TestCase):
                           .values_list('id', flat=True))
         self.updates = (UpdateCount.objects.order_by('-date')
                         .values_list('id', flat=True))
-        self.theme_users = (ThemeUserCount.objects.order_by('-date')
-                            .values_list('id', flat=True))
 
     def test_by_date(self, group_mock):
         call_command('index_stats', addons=None, date='2009-06-01')
@@ -179,15 +177,6 @@ class TestIndexStats(TestCase):
             if c.tasks[0].task == 'olympia.stats.tasks.index_download_counts'
         ]
         assert len(download_counts_calls) == 9
-
-        # There should be 3 theme users, but 2 of them have a date close enough
-        # together that they'll be indexed in the same chunk, so we should have
-        # 2 calls.
-        theme_user_counts_calls = [
-            c.tasks[0].args for c in calls
-            if c.tasks[0].task == 'olympia.stats.tasks.index_theme_user_counts'
-        ]
-        assert len(theme_user_counts_calls) == 2
 
 
 class TestIndexLatest(amo.tests.ESTestCase):
