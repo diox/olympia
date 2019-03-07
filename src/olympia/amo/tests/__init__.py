@@ -107,7 +107,10 @@ def setup_es_test_data(es):
 
     for key in aliases_and_indexes:
         if key.startswith('test_'):
-            es.indices.delete(key, ignore=[404])
+            if es.indices.exists_alias(name=key):
+                es.indices.delete_alias(index='*', name=key, ignore=[404])
+            elif es.indices.exists(key):
+                es.indices.delete(key, ignore=[404])
 
     # Figure out the name of the indices we're going to create from the
     # suffixes generated at import time. Like the aliases later, the name
