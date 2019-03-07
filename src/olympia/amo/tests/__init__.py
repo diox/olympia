@@ -38,11 +38,10 @@ from waffle.models import Flag, Sample, Switch
 from olympia import amo
 from olympia.access.acl import check_ownership
 from olympia.api.authentication import WebTokenAuthentication
-from olympia.stats import search as stats_search
 from olympia.amo import search as amo_search
 from olympia.access.models import Group, GroupUser
 from olympia.accounts.utils import fxa_login_url
-from olympia.addons import indexers as addons_indexers
+from olympia.addons.indexers import AddonIndexer
 from olympia.addons.models import (
     Addon, AddonCategory, Category, Persona,
     update_search_index as addon_update_search_index)
@@ -55,6 +54,7 @@ from olympia.bandwagon.models import Collection
 from olympia.constants.categories import CATEGORIES
 from olympia.files.models import File
 from olympia.lib.es.utils import timestamp_index
+from olympia.stats.indexers import DownloadCountIndexer, UpdateCountIndexer
 from olympia.tags.models import Tag
 from olympia.translations.models import Translation
 from olympia.versions.models import ApplicationsVersions, License, Version
@@ -119,16 +119,22 @@ def setup_es_test_data(es):
     # Create new addons and stats indexes with the timestamped name.
     # This is crucial to set up the correct mappings before we start
     # indexing things in tests.
-    addons_indexers.create_new_index(index_name=actual_indices['default'])
-    stats_search.create_new_index(index_name=actual_indices['stats'])
+    AddonIndexer.create_new_index(
+        actual_indices['default'])
+    DownloadCountIndexer.create_new_index(
+        actual_indices['stats_download_counts'])
+    UpdateCountIndexer.create_new_index(
+        actual_indices['stats_update_counts'])
 
     # Alias it to the name the code is going to use (which is suffixed by
     # pytest to avoid clashing with the real thing).
     actions = [
         {'add': {'index': actual_indices['default'],
                  'alias': settings.ES_INDEXES['default']}},
-        {'add': {'index': actual_indices['stats'],
-                 'alias': settings.ES_INDEXES['stats']}}
+        {'add': {'index': actual_indices['stats_download_counts'],
+                 'alias': settings.ES_INDEXES['stats_download_counts']}},
+        {'add': {'index': actual_indices['stats_update_counts'],
+                 'alias': settings.ES_INDEXES['stats_update_counts']}},
     ]
 
     es.indices.update_aliases({'actions': actions})

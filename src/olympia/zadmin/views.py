@@ -15,7 +15,7 @@ import olympia.core.logger
 from olympia import amo
 from olympia.activity.models import ActivityLog
 from olympia.addons.decorators import addon_view_factory
-from olympia.addons.indexers import get_mappings as get_addons_mappings
+from olympia.addons.indexers import AddonIndexer
 from olympia.addons.models import Addon
 from olympia.amo import messages, search
 from olympia.amo.decorators import (
@@ -24,7 +24,7 @@ from olympia.amo.mail import DevEmailBackend
 from olympia.amo.utils import HttpResponseSendFile, render
 from olympia.bandwagon.models import Collection
 from olympia.files.models import File, FileUpload
-from olympia.stats.search import get_mappings as get_stats_mappings
+from olympia.stats.indexers import DownloadCountIndexer, UpdateCountIndexer
 from olympia.versions.models import Version
 
 from .decorators import admin_required
@@ -129,20 +129,20 @@ def monthly_pick(request):
 
 @admin_required
 def elastic(request):
-    INDEX = settings.ES_INDEXES['default']
     es = search.get_es()
 
-    indexes = set(settings.ES_INDEXES.values())
-    es_mappings = {
-        'addons': get_addons_mappings(),
-        'addons_stats': get_stats_mappings(),
-    }
     ctx = {
-        'index': INDEX,
         'nodes': es.nodes.stats(),
         'health': es.cluster.health(),
         'state': es.cluster.state(),
-        'mappings': [(index, es_mappings.get(index, {})) for index in indexes],
+        'mappings': (
+            (settings.ES_INDEXES['default'],
+                AddonIndexer.get_mapping()),
+            (settings.ES_INDEXES['stats_download_counts'],
+                DownloadCountIndexer.get_mapping()),
+            (settings.ES_INDEXES['stats_update_counts'],
+                UpdateCountIndexer.get_mapping()),
+        ),
     }
     return render(request, 'zadmin/elastic.html', ctx)
 

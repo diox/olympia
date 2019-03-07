@@ -10,33 +10,37 @@ from elasticsearch.exceptions import NotFoundError
 
 import olympia.core.logger
 
-from olympia.addons import indexers as addons_indexer
+from olympia.addons.indexers import AddonIndexer
 from olympia.amo.celery import task
 from olympia.amo.search import get_es
 from olympia.lib.es.utils import (
     flag_reindexing_amo, is_reindexing_amo, timestamp_index,
     unflag_reindexing_amo)
-from olympia.stats import search as stats_search
+from olympia.stats.indexers import DownloadCountIndexer, UpdateCountIndexer
 
 
 logger = olympia.core.logger.getLogger('z.elasticsearch')
 ES = get_es()
 
 
-def get_modules(with_stats=True):
-    """Return python modules containing functions reindex needs.
+def get_indexers(with_stats=True):
+    """Return indexer classes (see BaseSearchIndexer) we want to use for
+    reindexation.
 
-    The `with_stats` parameter can be passed to omit the stats index module.
+    The `with_stats` parameter can be used to omit the stats indexes.
 
     This needs to be dynamic to work with testing correctly, since tests change
-    the value of settings.ES_INDEXES to hit test-specific aliases."""
+    the value of settings.ES_INDEXES to hit test-specific aliases.
+    """
     rval = {
-        # The keys are the index alias names, the values the python modules.
+        # The keys are the index alias names, the values the indexer classes.
         # The 'default' in ES_INDEXES is actually named 'addons'
-        settings.ES_INDEXES['default']: addons_indexer,
+        settings.ES_INDEXES['default']: AddonIndexer,
     }
     if with_stats:
-        rval[settings.ES_INDEXES['stats']] = stats_search
+        rval[settings.ES_INDEXES['stats_download_counts']] = (
+            DownloadCountIndexer)
+        rval[settings.ES_INDEXES['stats_update_counts']] = UpdateCountIndexer
 
     return rval
 
@@ -58,7 +62,7 @@ def update_aliases(actions):
 def create_new_index(alias, new_index):
     logger.info(
         'Create the index {0}, for alias: {1}'.format(new_index, alias))
-    get_modules()[alias].create_new_index(new_index)
+    get_indexers()[alias].create_new_index(new_index)
 
 
 @task(ignore_result=False)
@@ -80,7 +84,7 @@ def gather_index_data_tasks(alias, index):
     Return a group of indexing tasks for that index.
     """
     logger.info('Returning reindexing group for {0}'.format(index))
-    return get_modules()[alias].reindex_tasks_group(index)
+    return get_indexers()[alias].reindex_tasks_group(index)
 
 
 _SUMMARY = """
@@ -138,7 +142,7 @@ class Command(BaseCommand):
 
         self.stdout.write('Starting the reindexation')
 
-        modules = get_modules(with_stats=kwargs.get('with_stats', False))
+        modules = get_indexers(with_stats=kwargs.get('with_stats', False))
 
         if kwargs.get('wipe', False):
             skip_confirmation = kwargs.get('noinput', False)

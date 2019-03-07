@@ -178,7 +178,8 @@ class ESStatsTest(StatsTest, amo.tests.ESTestCase):
 
     def setUp(self):
         super(ESStatsTest, self).setUp()
-        self.empty_index('stats')
+        self.empty_index('stats_download_counts')
+        self.empty_index('stats_update_counts')
         self.index()
 
     def index(self):
@@ -186,7 +187,8 @@ class ESStatsTest(StatsTest, amo.tests.ESTestCase):
         tasks.index_update_counts(list(updates))
         downloads = DownloadCount.objects.values_list('id', flat=True)
         tasks.index_download_counts(list(downloads))
-        self.refresh('stats')
+        self.refresh('stats_download_counts')
+        self.refresh('stats_update_counts')
 
     def csv_eq(self, response, expected):
         content = force_text(response.content)
