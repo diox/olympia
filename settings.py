@@ -16,7 +16,13 @@ DEBUG = True
 # These apps are great during development.
 INSTALLED_APPS += (
     'olympia.landfill',
+    'debug_toolbar',
 )
+
+DEBUG_TOOLBAR_CONFIG = {
+    # Enable django-debug-toolbar locally, if DEBUG is True.
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+}
 
 FILESYSTEM_CACHE_ROOT = os.path.join(TMP_PATH, 'cache')
 

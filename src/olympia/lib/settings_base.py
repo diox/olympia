@@ -54,6 +54,11 @@ def path(*folders):
 
 DEBUG = False
 
+DEBUG_TOOLBAR_CONFIG = {
+    # Deactivate django debug toolbar by default.
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+}
+
 # Ensure that exceptions aren't re-raised.
 DEBUG_PROPAGATE_EXCEPTIONS = False
 SILENCED_SYSTEM_CHECKS = (
@@ -279,6 +284,9 @@ JINJA_EXCLUDE_TEMPLATE_PATHS = (
 
     # Django specific templates
     r'^registration\/',
+
+    # Django debug toolbar
+    r'debug_toolbar',
 )
 
 TEMPLATES = [
@@ -381,6 +389,10 @@ MIDDLEWARE = (
     # Gzip (for API only) middleware needs to be executed after every
     # modification to the response, so it's placed at the top of the list.
     'olympia.api.middleware.GZipMiddlewareForAPIOnly',
+
+    # Django debug toolbar, should do nothing if
+    # DEBUG_TOOLBAR_CONFIG['SHOW_TOOLBAR_CALLBACK'] callback returns False.
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 
     # Statsd and logging come first to get timings etc. Munging REMOTE_ADDR
     # must come before middlewares potentially using REMOTE_ADDR, so it's
