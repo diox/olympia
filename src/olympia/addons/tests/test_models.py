@@ -17,8 +17,8 @@ from olympia.activity.models import ActivityLog, AddonLog
 from olympia.addons import models as addons_models
 from olympia.addons.models import (
     Addon, AddonApprovalsCounter, AddonCategory, AddonReviewerFlags, AddonUser,
-    AppSupport, Category, DeniedGuid, DeniedSlug, FrozenAddon, MigratedLWT,
-    Preview, ReusedGUID, track_addon_status_change)
+    Category, DeniedGuid, DeniedSlug, FrozenAddon, MigratedLWT, Preview,
+    ReusedGUID, track_addon_status_change)
 from olympia.amo.templatetags.jinja_helpers import absolutify
 from olympia.amo.tests import (
     TestCase, addon_factory, collection_factory, version_factory)
@@ -1811,7 +1811,6 @@ class TestAddonDelete(TestCase):
             category=Category.objects.create(type=amo.ADDON_EXTENSION))
         AddonUser.objects.create(
             addon=addon, user=UserProfile.objects.create())
-        AppSupport.objects.create(addon=addon, app=1)
         FrozenAddon.objects.create(addon=addon)
 
         AddonLog.objects.create(
