@@ -3,7 +3,7 @@ import time
 from datetime import datetime, timedelta
 
 from django.db import connections
-from django.db.models import Avg, F, Q, Sum
+from django.db.models import Avg, Q, Sum
 
 import multidb
 import waffle
@@ -16,8 +16,7 @@ from olympia import amo
 from olympia.addons.models import Addon, FrozenAddon
 from olympia.addons.tasks import (
     update_addon_average_daily_users as _update_addon_average_daily_users,
-    update_addon_download_totals as _update_addon_download_totals,
-    update_appsupport)
+    update_addon_download_totals as _update_addon_download_totals)
 from olympia.amo.decorators import use_primary_db
 from olympia.amo.utils import chunked
 from olympia.files.models import File
@@ -102,23 +101,6 @@ def addon_last_updated():
     other = (Addon.objects.filter(last_updated__isnull=True)
              .values_list('id', 'created'))
     _change_last_updated(dict(other))
-
-
-def update_addon_appsupport():
-    # Find all the add-ons that need their app support details updated.
-    newish = (Q(last_updated__gte=F('appsupport__created')) |
-              Q(appsupport__created__isnull=True))
-    # Search providers don't list supported apps.
-    has_app = Q(versions__apps__isnull=False) | Q(type=amo.ADDON_SEARCH)
-    has_file = Q(versions__files__status__in=amo.VALID_FILE_STATUSES)
-    good = Q(has_app, has_file)
-    ids = (Addon.objects.valid().distinct()
-           .filter(newish, good).values_list('id', flat=True))
-
-    task_log.info('Updating appsupport for %d new-ish addons.' % len(ids))
-    ts = [update_appsupport.subtask(args=[chunk])
-          for chunk in chunked(ids, 20)]
-    group(ts).apply_async()
 
 
 def hide_disabled_files():

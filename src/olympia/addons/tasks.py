@@ -4,7 +4,6 @@ from json import JSONDecodeError
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 import waffle
 
@@ -15,8 +14,8 @@ import olympia.core
 from olympia import amo
 from olympia.addons.indexers import AddonIndexer
 from olympia.addons.models import (
-    Addon, AddonApprovalsCounter, AppSupport, MigratedLWT, Preview,
-    attach_tags, attach_translations)
+    Addon, AddonApprovalsCounter, MigratedLWT, Preview, attach_tags,
+    attach_translations)
 from olympia.amo.celery import pause_all_tasks, resume_all_tasks, task
 from olympia.amo.decorators import use_primary_db
 from olympia.amo.utils import (
@@ -39,7 +38,6 @@ log = olympia.core.logger.getLogger('z.task')
 @use_primary_db
 def version_changed(addon_id, **kw):
     update_last_updated(addon_id)
-    update_appsupport([addon_id])
 
 
 def update_last_updated(addon_id):
@@ -62,32 +60,6 @@ def update_last_updated(addon_id):
     if res:
         pk, t = res[0]
         Addon.objects.filter(pk=pk).update(last_updated=t)
-
-
-@task
-@use_primary_db
-def update_appsupport(ids, **kw):
-    log.info("[%s@None] Updating appsupport for %s." % (len(ids), ids))
-
-    addons = Addon.objects.filter(id__in=ids).no_transforms()
-    support = []
-    for addon in addons:
-        for app, appver in addon.compatible_apps.items():
-            if appver is None:
-                # Fake support for all version ranges.
-                min_, max_ = 0, 999999999999999999
-            else:
-                min_, max_ = appver.min.version_int, appver.max.version_int
-
-            support.append(AppSupport(addon=addon, app=app.id,
-                                      min=min_, max=max_))
-
-    if not support:
-        return
-
-    with transaction.atomic():
-        AppSupport.objects.filter(addon__id__in=ids).delete()
-        AppSupport.objects.bulk_create(support)
 
 
 @task

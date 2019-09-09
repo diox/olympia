@@ -108,16 +108,6 @@
         }
     },
     {
-        "pk": 999999,
-        "model": "addons.appsupport",
-        "fields": {
-            "app": 1,
-            "addon": 228106,
-            "modified": "2010-10-02 07:22:41",
-            "created": "2010-10-02 07:22:41"
-        }
-    },
-    {
         "pk": 5468632,
         "model": "users.userprofile",
         "fields": {

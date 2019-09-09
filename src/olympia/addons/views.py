@@ -611,8 +611,7 @@ class LanguageToolsView(ListAPIView):
         """
         return (
             Addon.objects.public()
-                 .filter(appsupport__app=application, type__in=addon_types,
-                         target_locale__isnull=False)
+                 .filter(type__in=addon_types, target_locale__isnull=False)
                  .exclude(target_locale='')
             # Deactivate default transforms which fetch a ton of stuff we
             # don't need here like authors, previews or current version.

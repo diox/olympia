@@ -97,15 +97,5 @@
             "size": 5,
             "datestatuschanged": "2009-04-18 10:34:12"
         }
-    },
-    {
-        "pk": 1205,
-        "model": "addons.appsupport",
-        "fields": {
-            "app": 1,
-            "addon": 11399,
-            "modified": "2010-10-04 13:03:48",
-            "created": "2010-10-04 13:03:48"
-        }
     }
 ]

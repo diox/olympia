@@ -173,16 +173,7 @@ class AddonQuerySet(BaseQuerySet):
         Filter for all featured add-ons for an application in all locales.
         """
         ids = get_featured_ids(app, lang, type)
-        return manual_order(self.listed(app), ids, 'addons.id')
-
-    def listed(self, app, *status):
-        """
-        Return add-ons that support a given ``app``, have a version with a file
-        matching ``status`` and are not disabled.
-        """
-        if len(status) == 0:
-            status = [amo.STATUS_APPROVED]
-        return self.filter(self.valid_q(status), appsupport__app=app.id)
+        return manual_order(self.valid_q(), ids, 'addons.id')
 
     def valid_q(self, status=None, prefix=''):
         """
@@ -242,13 +233,6 @@ class AddonManager(ManagerBase):
         Filter for all featured add-ons for an application in all locales.
         """
         return self.get_queryset().featured(app, lang=lang, type=type)
-
-    def listed(self, app, *status):
-        """
-        Return add-ons that support a given ``app``, have a version with a file
-        matching ``status`` and are not disabled.
-        """
-        return self.get_queryset().listed(app, *status)
 
     def get_auto_approved_queue(self, admin_reviewer=False):
         """Return a queryset of Addon objects that have been auto-approved but
@@ -1116,23 +1100,6 @@ class Addon(OnChangeMixin, ModelBase):
 
         return addon_dict
 
-    def show_adu(self):
-        return self.type != amo.ADDON_SEARCH
-
-    def authors_other_addons(self, app=None):
-        """
-        Return other addons by the author(s) of this addon,
-        optionally takes an app.
-        """
-        if app:
-            qs = Addon.objects.listed(app)
-        else:
-            qs = Addon.objects.valid()
-        return (qs.exclude(id=self.id)
-                  .filter(addonuser__listed=True,
-                          authors__in=self.listed_authors)
-                  .distinct())
-
     @property
     def contribution_url(self, lang=settings.LANGUAGE_CODE,
                          app=settings.DEFAULT_APP):
@@ -1908,28 +1875,6 @@ dbsignals.pre_save.connect(save_signal, sender=Preview,
 models.signals.post_delete.connect(Preview.delete_preview_files,
                                    sender=Preview,
                                    dispatch_uid='delete_preview_files')
-
-
-class AppSupport(ModelBase):
-    """Cache to tell us if an add-on's current version supports an app."""
-    id = PositiveAutoField(primary_key=True)
-    addon = models.ForeignKey(Addon, on_delete=models.CASCADE)
-    app = models.PositiveIntegerField(choices=amo.APPS_CHOICES,
-                                      db_column='app_id')
-    min = models.BigIntegerField("Minimum app version", null=True)
-    max = models.BigIntegerField("Maximum app version", null=True)
-
-    class Meta:
-        db_table = 'appsupport'
-        indexes = [
-            models.Index(fields=('addon', 'app', 'min', 'max'),
-                         name='minmax_idx'),
-            models.Index(fields=('app',), name='app_id'),
-        ]
-        constraints = [
-            models.UniqueConstraint(fields=('addon', 'app'),
-                                    name='addon_id'),
-        ]
 
 
 class DeniedSlug(ModelBase):
