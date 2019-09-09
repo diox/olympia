@@ -173,7 +173,7 @@ class AddonQuerySet(BaseQuerySet):
         Filter for all featured add-ons for an application in all locales.
         """
         ids = get_featured_ids(app, lang, type)
-        return manual_order(self.valid_q(), ids, 'addons.id')
+        return manual_order(self.public(), ids, 'addons.id')
 
     def valid_q(self, status=None, prefix=''):
         """
