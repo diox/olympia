@@ -1200,7 +1200,7 @@ def auto_sign_version(version, **kwargs):
 
 @dev_required
 def version_list(request, addon_id, addon):
-    qs = addon.versions.order_by('-created').transform(Version.transformer)
+    qs = addon.versions.order_by('-created')
     versions = amo_utils.paginate(request, qs)
     is_admin = acl.action_allowed(request,
                                   amo.permissions.REVIEWS_ADMIN)
