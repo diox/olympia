@@ -1,4 +1,4 @@
-FROM python:3.6-slim-stretch
+FROM python:3.7-slim-stretch
 
 # need to compile swig
 ENV SWIG_FEATURES="-D__x86_64__"
