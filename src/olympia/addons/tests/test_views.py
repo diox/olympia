@@ -2287,7 +2287,6 @@ class TestLanguageToolsView(TestCase):
         response = self.client.get(self.url, {'app': 'firefox'})
         assert response.status_code == 200
         data = json.loads(force_text(response.content))
-        assert len(data['results']) == 3
         expected = [dictionary, dictionary_spelling_variant, language_pack]
         assert len(data['results']) == len(expected)
         assert (
