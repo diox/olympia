@@ -848,6 +848,14 @@ def review(request, addon, channel=None):
              .transform(Version.transformer_activity)
     )
 
+    specific_versions = []
+    version_ids = request.POST.get('versions', request.GET.get('versions', ''))
+    if version_ids:
+        # We want to look at specific versions and not just the recent history.
+        specific_versions = versions_qs.filter(pk__in=version_ids.split(','))
+        log = olympia.core.logger.getLogger('z.reviewers')
+        log.info('Looking at %s : %s', version_ids, specific_versions)
+
     deleted_addon_ids = (
         ReusedGUID.objects.filter(guid=addon.guid).values_list(
             'addon_id', flat=True) if addon.guid else [])
@@ -860,7 +868,7 @@ def review(request, addon, channel=None):
     # Now that we've paginated the versions queryset, iterate on them to
     # generate auto approvals info. Note that the variable should not clash
     # the already existing 'version'.
-    for a_version in pager.object_list:
+    for a_version in set(list(pager.object_list) + list(specific_versions)):
         if not a_version.is_ready_for_auto_approval:
             continue
         try:
@@ -897,6 +905,7 @@ def review(request, addon, channel=None):
         deleted_addon_ids=deleted_addon_ids, flags=flags,
         form=form, is_admin=is_admin, num_pages=num_pages, pager=pager,
         reports=reports, show_diff=show_diff,
+        specific_versions=specific_versions,
         subscribed=ReviewerSubscription.objects.filter(
             user=request.user, addon=addon).exists(),
         unlisted=(channel == amo.RELEASE_CHANNEL_UNLISTED),
