@@ -67,7 +67,8 @@ from olympia.reviewers.serializers import (
     FileEntriesSerializer, DraftCommentSerializer, CannedResponseSerializer)
 from olympia.reviewers.utils import (
     AutoApprovedTable, ContentReviewTable, ExpiredInfoRequestsTable,
-    ReviewHelper, ViewUnlistedAllListTable, view_table_factory)
+    NeedsHumanReviewTable, ReviewHelper, ViewUnlistedAllListTable,
+    view_table_factory)
 from olympia.users.models import UserProfile
 from olympia.versions.models import Version
 from olympia.zadmin.models import get_config, set_config
@@ -525,6 +526,9 @@ def fetch_queue_counts(admin_reviewer):
         'content_review': (
             Addon.objects.get_content_review_queue(
                 admin_reviewer=admin_reviewer).count),
+        'needs_human_review': (
+            Addon.objects.get_needs_human_review_queue(
+                admin_reviewer=admin_reviewer).count),
         'expired_info_requests': expired.count,
     }
     return {queue: count() for (queue, count) in counts.items()}
@@ -605,6 +609,15 @@ def queue_content_review(request):
         admin_reviewer=admin_reviewer
     )
     return _queue(request, ContentReviewTable, 'content_review',
+                  qs=qs, SearchForm=None)
+
+
+@permission_or_tools_view_required(amo.permissions.ADDONS_POST_REVIEW)
+def queue_needs_human_review(request):
+    admin_reviewer = is_admin_reviewer(request)
+    qs = Addon.objects.get_needs_human_review_queue(
+        admin_reviewer=admin_reviewer)
+    return _queue(request, NeedsHumanReviewTable, 'needs_human_review',
                   qs=qs, SearchForm=None)
 
 

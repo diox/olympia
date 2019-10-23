@@ -1464,6 +1464,19 @@ class TestAddonModels(TestCase):
         flags.update(pending_info_request=in_the_future)
         assert not addon.expired_info_request
 
+    def test_needs_human_review_property(self):
+        addon = Addon.objects.get(pk=3615)
+        # No flags: None
+        assert addon.needs_human_review is None
+        # Flag present, value is None (default): None.
+        # FIXME: change to False in follow-up push.
+        flags = AddonReviewerFlags.objects.create(addon=addon)
+        assert flags.needs_human_review is None
+        assert addon.needs_human_review is None
+        # Flag present, value is True: True.
+        flags.update(needs_human_review=True)
+        assert addon.needs_human_review is True
+
     def test_attach_previews(self):
         addons = [addon_factory(), addon_factory(), addon_factory()]
         # Give some of the addons previews:

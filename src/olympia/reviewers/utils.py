@@ -253,6 +253,25 @@ class ContentReviewTable(AutoApprovedTable):
         return reverse('reviewers.review', args=['content', record.slug])
 
 
+class NeedsHumanReviewTable(ContentReviewTable):
+    def render_addon_name(self, record):
+        rval = [jinja2.escape(record.name)]
+        url = reverse('reviewers.review', args=[record.slug])
+        if record.current_version:
+            rval.append('<a href="%s">Listed: <em>%s</em></a>' % (
+                url,
+                jinja2.escape(record.current_version)
+            ))
+        if record.latest_unlisted_version:
+            rval.append(
+                '<a href="%s?channel=unlisted">Unlisted: <em>%s</em></a>' % (
+                    url,
+                    jinja2.escape(record.latest_unlisted_version)
+                )
+            )
+        return ''.join(rval)
+
+
 class ReviewHelper(object):
     """
     A class that builds enough to render the form back to the user and

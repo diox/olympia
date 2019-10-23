@@ -321,6 +321,44 @@ class AddonManager(ManagerBase):
                 addonreviewerflags__needs_admin_content_review=True)
         return qs
 
+    def get_needs_human_review_queue(self, admin_reviewer=False):
+        """Return a queryset of Addon objects that have been approved but
+        automatically flagged as needing human review."""
+        qs = (
+            self.get_queryset()
+            # All valid statuses, plus incomplete as well because the add-on
+            # could be purely unlisted (so we can't use valid_q(), which
+            # filters out current_version=None). We know the add-ons are likely
+            # to have a version since they got the needs_human_review flag, so
+            # returning incomplete ones is acceptable.
+            .filter(
+                disabled_by_user=False,
+                status__in=[
+                    amo.STATUS_APPROVED, amo.STATUS_NOMINATED, amo.STATUS_NULL
+                ],
+                addonreviewerflags__needs_human_review=True)
+            # We don't want the default transformer.
+            # See get_auto_approved_queue()
+            .only_translations()
+            # We need those joins for the queue to work without making extra
+            # queries. See get_auto_approved_queue()
+            .select_related(
+                'addonapprovalscounter',
+                'addonreviewerflags',
+                '_current_version__autoapprovalsummary',
+            )
+            .prefetch_related(
+                '_current_version__files'
+            )
+            .order_by(
+                'created',
+            )
+        )
+        if not admin_reviewer:
+            qs = qs.exclude(
+                addonreviewerflags__needs_admin_content_review=True)
+        return qs
+
 
 class Addon(OnChangeMixin, ModelBase):
     id = PositiveAutoField(primary_key=True)
@@ -1432,6 +1470,13 @@ class Addon(OnChangeMixin, ModelBase):
             return None
 
     @property
+    def needs_human_review(self):
+        try:
+            return self.addonreviewerflags.needs_human_review
+        except AddonReviewerFlags.DoesNotExist:
+            return None
+
+    @property
     def expired_info_request(self):
         info_request = self.pending_info_request
         return info_request and info_request < datetime.now()
@@ -1590,6 +1635,9 @@ class AddonReviewerFlags(ModelBase):
     auto_approval_disabled = models.BooleanField(default=False)
     pending_info_request = models.DateTimeField(default=None, null=True)
     notified_about_expiring_info_request = models.BooleanField(default=False)
+    # FIXME: Convert needs_human_review to a BooleanField(default=False) in
+    # future push following the one where the field was introduced.
+    needs_human_review = models.NullBooleanField(default=None)
 
 
 class MigratedLWT(OnChangeMixin, ModelBase):

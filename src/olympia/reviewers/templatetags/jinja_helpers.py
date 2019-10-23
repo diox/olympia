@@ -115,6 +115,13 @@ def queue_tabnav(context):
                             counts['auto_approved'])
                   .format(counts['auto_approved']))),
             )
+            tabnav.append(
+                ('needs_human_review', 'queue_needs_human_review',
+                 (ungettext('Needs Human Review ({0})',
+                            'Needs Human Review ({0})',
+                            counts['needs_human_review'])
+                  .format(counts['needs_human_review']))),
+            )
 
         if acl.action_allowed(request, amo.permissions.ADDONS_CONTENT_REVIEW):
             tabnav.append(

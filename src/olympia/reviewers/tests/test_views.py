@@ -3429,6 +3429,20 @@ class TestReview(ReviewBase):
         assert not doc('#disable_auto_approval')
         assert not doc('#enable_auto_approval')
 
+    def test_clear_needs_human_review_as_admin(self):
+        self.login_as_admin()
+        response = self.client.get(self.url)
+        assert response.status_code == 200
+        doc = pq(response.content)
+        assert not doc('#clear_needs_human_review')
+
+        AddonReviewerFlags.objects.create(
+            addon=self.addon, needs_human_review=True)
+        response = self.client.get(self.url)
+        assert response.status_code == 200
+        doc = pq(response.content)
+        assert doc('#clear_needs_human_review')
+
     def test_clear_pending_info_request_as_admin(self):
         self.login_as_admin()
         response = self.client.get(self.url)
@@ -5465,6 +5479,7 @@ class TestAddonReviewerViewSet(TestCase):
             'needs_admin_content_review': True,
             'needs_admin_theme_review': True,
             'pending_info_request': None,
+            'needs_human_review': True,
         }
         response = self.client.patch(self.flags_url, data)
         assert response.status_code == 200
@@ -5475,6 +5490,7 @@ class TestAddonReviewerViewSet(TestCase):
         assert reviewer_flags.needs_admin_content_review is True
         assert reviewer_flags.needs_admin_theme_review is True
         assert reviewer_flags.pending_info_request is None
+        assert reviewer_flags.needs_human_review is True
         assert ActivityLog.objects.count() == 1
         activity_log = ActivityLog.objects.latest('pk')
         assert activity_log.action == amo.LOG.ADMIN_ALTER_INFO_REQUEST.id
