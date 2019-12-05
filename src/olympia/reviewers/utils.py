@@ -427,6 +427,21 @@ class ReviewHelper(object):
                  is_unlisted_and_user_can_review_unlisted)
             ),
         }
+        actions['disable_multiple_versions'] = {
+            'method': self.handler.reject_multiple_versions,
+            'label': _('Disable Multiple Versions'),
+            'minimal': True,
+            'versions': True,
+            'comments': False,
+            'details': _('This will disable the selected approved '
+                         'versions silently, and open up the block creation '
+                         'admin page.'),
+            'available': (
+                self.addon.type != amo.ADDON_STATICTHEME and
+                reviewable_because_not_reserved_for_admins_or_user_is_admin and
+                is_unlisted_and_user_can_review_unlisted
+            ),
+        }
         actions['confirm_multiple_versions'] = {
             'method': self.handler.confirm_multiple_versions,
             'label': _('Confirm Multiple Versions'),
@@ -960,6 +975,33 @@ class ReviewUnlisted(ReviewBase):
         log.info(u'Making %s files %s public' %
                  (self.addon, ', '.join([f.filename for f in self.files])))
         log.info(u'Sending email for %s' % (self.addon))
+
+    def disable_multiple_versions(self):
+        # FIXME using js, on submit, if the right action is selected, open up
+        # the admin:
+        # /blocklist/block/add_single/
+        # ?guid={41de3c41-eb00-49a6-ba34-e096a7569052}
+        # &min_version=8
+        # &max_version=25
+        # need to figure out how to pass the base URL to the js (therefore to
+        # the template, accessible then through some data attribute)
+        # self.version and self.files won't point to the versions we want to
+        # modify in this action, so set them to None before finding the right
+        # versions.
+        self.version = None
+        self.files = None
+        action_id = amo.LOG.REJECT_VERSION
+        timestamp = datetime.now()
+        for version in self.data['versions']:
+            files = version.files.all()
+            self.set_files(amo.STATUS_DISABLED, files, hide_disabled_file=True)
+            self.log_action(action_id, version=version, files=files,
+                            timestamp=timestamp)
+            if self.human_review:
+                # Unset needs_human_review on rejected versions, we consider
+                # that the reviewer looked at them before disabling.
+                if version.needs_human_review:
+                    version.update(needs_human_review=False)
 
     def confirm_multiple_versions(self):
         """Confirm approval on a list of versions."""
