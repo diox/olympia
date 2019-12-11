@@ -29,9 +29,10 @@ from olympia.constants.base import (
 from olympia.devhub.forms import icons
 from olympia.landfill.collection import generate_collection
 from olympia.files.tests.test_file_viewer import get_file
+from olympia.files.utils import parse_addon
 from olympia.ratings.models import Rating
 from olympia.users.models import UserProfile
-from olympia.devhub.tasks import create_version_for_upload
+from olympia.devhub.tasks import create_addon_and_or_version_from_upload
 from olympia.discovery.models import DiscoveryItem
 from olympia.hero.models import PrimaryHero, SecondaryHero
 
@@ -453,8 +454,11 @@ class GenerateAddonsSerializer(serializers.Serializer):
             )
 
             # And let's create a new version for that upload.
-            create_version_for_upload(
-                upload.addon, upload, amo.RELEASE_CHANNEL_LISTED)
+            parsed_data = parse_addon(upload, addon, user=user)
+            create_addon_and_or_version_from_upload(
+                upload=upload, parsed_data=parsed_data,
+                selected_apps=[x[0] for x in amo.APPS_CHOICES],
+                channel=amo.RELEASE_CHANNEL_LISTED)
 
             # Change status to public
             addon.update(status=amo.STATUS_APPROVED)

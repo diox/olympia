@@ -406,9 +406,9 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
 
     def setUp(self):
         super(TestAddonSubmitUpload, self).setUp()
-        self.upload = self.get_upload('webextension_no_id.xpi')
-        assert self.client.login(email='regular@mozilla.com')
         self.user = UserProfile.objects.get(email='regular@mozilla.com')
+        self.upload = self.get_upload('webextension_no_id.xpi', user=self.user)
+        assert self.client.login(email='regular@mozilla.com')
         self.user.update(last_login_ip='192.168.1.1')
         self.client.post(reverse('devhub.submit.agreement'))
 
@@ -520,7 +520,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
             'messages': [],
         }
         self.upload = self.get_upload(
-            'extension.xpi', validation=json.dumps(result))
+            'extension.xpi', validation=json.dumps(result), user=self.user)
         self.post(listed=False)
         addon = Addon.objects.get()
         version = addon.find_latest_version(
@@ -587,7 +587,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
         assert Addon.objects.count() == 0
         path = os.path.join(
             settings.ROOT, 'src/olympia/devhub/tests/addons/static_theme.zip')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(abspath=path, user=self.user)
         response = self.post()
         addon = Addon.objects.get()
         self.assert3xx(
@@ -605,7 +605,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
         assert Addon.unfiltered.count() == 0
         path = os.path.join(
             settings.ROOT, 'src/olympia/devhub/tests/addons/static_theme.zip')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(abspath=path, user=self.user)
         response = self.post(listed=False)
         addon = Addon.unfiltered.get()
         latest_version = addon.find_latest_version(
@@ -633,7 +633,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
         assert Addon.objects.count() == 0
         path = os.path.join(
             settings.ROOT, 'src/olympia/devhub/tests/addons/static_theme.zip')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(abspath=path, user=self.user)
         response = self.post(url=url)
         addon = Addon.objects.get()
         # Next step is same as non-wizard flow too.
@@ -663,7 +663,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
         assert Addon.unfiltered.count() == 0
         path = os.path.join(
             settings.ROOT, 'src/olympia/devhub/tests/addons/static_theme.zip')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(abspath=path, user=self.user)
         response = self.post(url=url, listed=False)
         addon = Addon.unfiltered.get()
         latest_version = addon.find_latest_version(
@@ -684,7 +684,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
         path = os.path.join(
             settings.ROOT,
             'src/olympia/devhub/tests/addons/valid_webextension.xpi')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(abspath=path, user=self.user)
         response = self.post()
         addon = Addon.objects.get()
         self.assert3xx(
@@ -698,7 +698,7 @@ class TestAddonSubmitUpload(UploadTest, TestCase):
         path = os.path.join(
             settings.ROOT,
             'src/olympia/devhub/tests/addons/valid_webextension.xpi')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(abspath=path, user=self.user)
         response = self.post(listed=False)
         addon = Addon.objects.get()
         self.assert3xx(
@@ -1905,11 +1905,11 @@ class VersionSubmitUploadMixin(object):
 
     def setUp(self):
         super(VersionSubmitUploadMixin, self).setUp()
-        self.upload = self.get_upload('extension.xpi')
+        self.user = UserProfile.objects.get(email='del@icio.us')
+        self.upload = self.get_upload('extension.xpi', user=self.user)
         self.addon = Addon.objects.get(id=3615)
         self.version = self.addon.current_version
         self.addon.update(guid='guid@xpi')
-        self.user = UserProfile.objects.get(email='del@icio.us')
         assert self.client.login(email=self.user.email)
         self.user.update(last_login_ip='192.168.1.1')
         self.addon.versions.update(channel=self.channel)
@@ -2062,7 +2062,8 @@ class VersionSubmitUploadMixin(object):
         # And then check the upload works.
         path = os.path.join(
             settings.ROOT, 'src/olympia/devhub/tests/addons/static_theme.zip')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(
+            abspath=path, addon=self.addon, user=self.user)
         response = self.post()
 
         version = self.addon.find_latest_version(channel=self.channel)
@@ -2122,7 +2123,8 @@ class VersionSubmitUploadMixin(object):
         # And then check the upload works.
         path = os.path.join(
             settings.ROOT, 'src/olympia/devhub/tests/addons/static_theme.zip')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(
+            abspath=path, addon=self.addon, user=self.user)
         response = self.post()
 
         version = self.addon.find_latest_version(channel=self.channel)
@@ -2147,7 +2149,8 @@ class VersionSubmitUploadMixin(object):
         path = os.path.join(
             settings.ROOT,
             'src/olympia/devhub/tests/addons/valid_webextension.xpi')
-        self.upload = self.get_upload(abspath=path)
+        self.upload = self.get_upload(
+            abspath=path, addon=self.addon, user=self.user)
         response = self.post()
         version = self.addon.find_latest_version(channel=self.channel)
         self.assert3xx(
@@ -2163,9 +2166,13 @@ class TestVersionSubmitUploadListed(VersionSubmitUploadMixin, UploadTest):
     channel = amo.RELEASE_CHANNEL_LISTED
 
     def test_success(self):
+        self.upload = self.get_upload(
+            'extension.xpi', user=self.user, addon=self.addon)
+        existing_version = self.addon.current_version
         response = self.post()
         version = self.addon.find_latest_version(
             channel=amo.RELEASE_CHANNEL_LISTED)
+        assert version != existing_version
         assert version.channel == amo.RELEASE_CHANNEL_LISTED
         assert version.all_files[0].status == amo.STATUS_AWAITING_REVIEW
         self.assert3xx(response, self.get_next_url(version))
@@ -2178,7 +2185,7 @@ class TestVersionSubmitUploadListed(VersionSubmitUploadMixin, UploadTest):
             validation=json.dumps({
                 "notices": 2, "errors": 0, "messages": [],
                 "metadata": {}, "warnings": 1,
-            }))
+            }), addon=self.addon, user=self.user)
         self.addon.update(
             guid='@experiment-inside-webextension-guid',
             status=amo.STATUS_APPROVED)
@@ -2193,7 +2200,7 @@ class TestVersionSubmitUploadListed(VersionSubmitUploadMixin, UploadTest):
             validation=json.dumps({
                 "notices": 2, "errors": 0, "messages": [],
                 "metadata": {}, "warnings": 1,
-            }))
+            }), addon=self.addon, user=self.user)
         self.addon.update(
             guid='@theme–experiment-inside-webextension-guid',
             status=amo.STATUS_APPROVED)
@@ -2209,6 +2216,8 @@ class TestVersionSubmitUploadListed(VersionSubmitUploadMixin, UploadTest):
         self.addon.update_status()
         # Deleting all the versions should make it null.
         assert self.addon.status == amo.STATUS_NULL
+        self.upload = self.get_upload(
+            'extension.xpi', user=self.user, addon=self.addon)
         self.post()
         self.addon.reload()
         assert self.addon.status == amo.STATUS_NOMINATED
@@ -2219,7 +2228,7 @@ class TestVersionSubmitUploadListed(VersionSubmitUploadMixin, UploadTest):
             validation=json.dumps({
                 "notices": 2, "errors": 0, "messages": [],
                 "metadata": {}, "warnings": 1,
-            }))
+            }), addon=self.addon, user=self.user)
 
         self.addon.update(type=amo.ADDON_LPAPP)
 
@@ -2242,6 +2251,8 @@ class TestVersionSubmitUploadListed(VersionSubmitUploadMixin, UploadTest):
                 args=[self.addon.slug, version.pk]))
 
     def test_redirect_if_addon_is_invisible(self):
+        self.upload = self.get_upload(
+            'extension.xpi', user=self.user, addon=self.addon)
         self.addon.update(disabled_by_user=True)
         # We should be redirected to the "distribution" page, because we tried
         # to access the listed upload page while the add-on was "invisible".
@@ -2270,7 +2281,8 @@ class TestVersionSubmitUploadUnlisted(VersionSubmitUploadMixin, UploadTest):
             'messages': [],
         }
         self.upload = self.get_upload(
-            'extension.xpi', validation=json.dumps(result))
+            'extension.xpi', validation=json.dumps(result), addon=self.addon,
+            user=self.user)
         response = self.post()
         version = self.addon.find_latest_version(
             channel=amo.RELEASE_CHANNEL_UNLISTED)

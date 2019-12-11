@@ -72,56 +72,85 @@ def validate(file_, listed=None, final_task=None):
         return result
 
 
-def validate_and_submit(addon, file_, channel):
+def validate_and_submit(upload, channel):
     return validate(
-        file_,
+        upload,
         listed=(channel == amo.RELEASE_CHANNEL_LISTED),
-        final_task=submit_file.si(addon.pk, file_.pk, channel)
+        final_task=submit_file.si(upload.pk, channel)
     )
 
 
 @task
 @use_primary_db
-def submit_file(addon_pk, upload_pk, channel):
-    addon = Addon.unfiltered.get(pk=addon_pk)
+def submit_file(upload_pk, channel):
+    """
+    Task wrapping create_addon_and_or_version_from_upload() for the signing
+    API, mimicking the submission process.
+    """
     upload = FileUpload.objects.get(pk=upload_pk)
+    # Note: parse_addon() is supposed to have been called once already when we
+    # reach this point. If it raises a ValidationError, it probably means there
+    # was a race condition somewhere, we let the exception go through, the task
+    # will fail, API will never return success and we'll get a sentry
+    # traceback.
+    parsed_data = parse_addon(upload, upload.addon, user=upload.user)
+    selected_apps = [x[0] for x in amo.APPS_CHOICES]
     if upload.passed_all_validations:
-        create_version_for_upload(addon, upload, channel)
+        create_addon_and_or_version_from_upload(
+            upload=upload,
+            parsed_data=parsed_data,
+            selected_apps=selected_apps,
+            channel=channel)
     else:
-        log.info('Skipping version creation for {upload_uuid} that failed '
-                 'validation'.format(upload_uuid=upload.uuid))
+        log.info('Skipping version creation for %s that failed validation',
+                 upload.uuid)
 
 
 @transaction.atomic
-def create_version_for_upload(addon, upload, channel):
-    fileupload_exists = addon.fileupload_set.filter(
-        created__gt=upload.created, version=upload.version).exists()
-    version_exists = Version.unfiltered.filter(
-        addon=addon, version=upload.version).exists()
-    if (fileupload_exists or version_exists):
-        log.info('Skipping Version creation for {upload_uuid} that would '
-                 ' cause duplicate version'.format(upload_uuid=upload.uuid))
+def create_addon_and_or_version_from_upload(
+        *, upload, parsed_data, selected_apps, channel):
+    """
+    Create a new Addon/Version from upload, parsed data, selected apps and
+    channel obtained from the submission process.
+
+    Returns a tuple with (addon, version).
+    """
+    addon = upload.addon  # Could be None.
+    version = None
+
+    if not addon:
+        log.info('Creating addon for %s that passed validation', upload.uuid)
+        addon = Addon.from_upload(
+            upload, selected_apps, channel=channel,
+            parsed_data=parsed_data, user=upload.user)
+        version = addon.find_latest_version(channel=channel)
     else:
+        fileupload_exists = addon.fileupload_set.filter(
+            created__gt=upload.created, version=upload.version).exists()
+        version_exists = Version.unfiltered.filter(
+            addon=addon, version=upload.version).exists()
+        if (fileupload_exists or version_exists):
+            log.info('Skipping Version creation for %s that would cause '
+                     'duplicate version', upload.uuid)
+        else:
+            log.info('Creating version for %s that passed validation',
+                     upload.uuid)
+            version = Version.from_upload(
+                upload, addon, selected_apps, channel, parsed_data=parsed_data)
+    if version:
         # Import loop.
         from olympia.devhub.utils import add_dynamic_theme_tag
 
-        log.info('Creating version for {upload_uuid} that passed '
-                 'validation'.format(upload_uuid=upload.uuid))
-        # Note: if we somehow managed to get here with an invalid add-on,
-        # parse_addon() will raise ValidationError and the task will fail
-        # loudly in sentry.
-        parsed_data = parse_addon(upload, addon, user=upload.user)
-        version = Version.from_upload(
-            upload, addon, [x[0] for x in amo.APPS_CHOICES],
-            channel,
-            parsed_data=parsed_data)
-        # The add-on's status will be STATUS_NULL when its first version is
-        # created because the version has no files when it gets added and it
-        # gets flagged as invalid. We need to manually set the status.
+        # The add-on's status will be STATUS_NULL when its first
+        # version is created because the version has no files when it
+        # gets added and it gets flagged as invalid. We need to
+        # manually set the status.
         if (addon.status == amo.STATUS_NULL and
+                addon.has_complete_metadata() and
                 channel == amo.RELEASE_CHANNEL_LISTED):
             addon.update(status=amo.STATUS_NOMINATED)
         add_dynamic_theme_tag(version)
+    return addon, version
 
 
 @task

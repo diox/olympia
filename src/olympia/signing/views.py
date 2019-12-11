@@ -203,12 +203,9 @@ class VersionView(APIView):
                     status.HTTP_400_BAD_REQUEST)
             parsed_data['guid'] = guid
 
-        # channel will be ignored for new addons.
         if addon is None:
-            channel = amo.RELEASE_CHANNEL_UNLISTED  # New is always unlisted.
-            addon = Addon.initialize_addon_from_upload(
-                data=parsed_data, upload=filedata, channel=channel,
-                user=request.user)
+            # When there is no add-on, channel is ignored and set to unlisted.
+            channel = amo.RELEASE_CHANNEL_UNLISTED
             created = True
         else:
             created = False

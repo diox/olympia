@@ -42,8 +42,9 @@ from olympia.api.models import APIKey, APIKeyConfirmation
 from olympia.devhub.decorators import dev_required, no_admin_disabled
 from olympia.devhub.models import BlogPost, RssKey
 from olympia.devhub.utils import (
-    add_dynamic_theme_tag, extract_theme_properties,
-    UploadRestrictionChecker, wizard_unsupported_properties)
+    extract_theme_properties, UploadRestrictionChecker,
+    wizard_unsupported_properties)
+from olympia.devhub.tasks import create_addon_and_or_version_from_upload
 from olympia.files.models import File, FileUpload
 from olympia.files.utils import parse_addon
 from olympia.reviewers.forms import PublicWhiteboardForm
@@ -596,11 +597,13 @@ def handle_upload(filedata, request, channel, addon=None, is_standalone=False,
     log.info('FileUpload created: %s' % upload.uuid.hex)
 
     if submit:
-        tasks.validate_and_submit(
-            addon, upload, channel=channel)
+        # We're submitting directly (i.e. using the signing API), the task will
+        # create the add-on/version from the FileUpload with no extra step.
+        tasks.validate_and_submit(upload, channel=channel)
     else:
-        tasks.validate(
-            upload, listed=(channel == amo.RELEASE_CHANNEL_LISTED))
+        # We're just validating the FileUpload, the developer will have to
+        # continue to the next step to create the add-on/version.
+        tasks.validate(upload, listed=(channel == amo.RELEASE_CHANNEL_LISTED))
 
     return upload
 
@@ -1297,32 +1300,19 @@ def _submit_upload(request, addon, channel, next_view, wizard=False):
         request=request
     )
     if request.method == 'POST' and form.is_valid():
-        data = form.cleaned_data
+        creating_new_addon_only = addon is None
+        addon, version = create_addon_and_or_version_from_upload(
+            upload=form.cleaned_data['upload'],
+            parsed_data=form.cleaned_data['parsed_data'],
+            selected_apps=form.cleaned_data['compatible_apps'],
+            channel=channel)
 
-        if addon:
-            version = Version.from_upload(
-                upload=data['upload'],
-                addon=addon,
-                selected_apps=data['compatible_apps'],
-                channel=channel,
-                parsed_data=data['parsed_data'])
-            url_args = [addon.slug, version.id]
-        else:
-            addon = Addon.from_upload(
-                upload=data['upload'],
-                channel=channel,
-                selected_apps=data['compatible_apps'],
-                parsed_data=data['parsed_data'],
-                user=request.user)
-            version = addon.find_latest_version(channel=channel)
+        if creating_new_addon_only:
             url_args = [addon.slug]
+        else:
+            url_args = [addon.slug, version.id]
 
         check_validation_override(request, form, addon, version)
-        if (addon.status == amo.STATUS_NULL and
-                addon.has_complete_metadata() and
-                channel == amo.RELEASE_CHANNEL_LISTED):
-            addon.update(status=amo.STATUS_NOMINATED)
-        add_dynamic_theme_tag(version)
         return redirect(next_view, *url_args)
     is_admin = acl.action_allowed(request,
                                   amo.permissions.REVIEWS_ADMIN)

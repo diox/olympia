@@ -1127,7 +1127,7 @@ class TestExtensionVersionFromUploadTransactional(
         parsed_data = parse_addon(upload, addon, user=upload.user)
 
         # Simulating an atomic transaction similar to what
-        # create_version_for_upload does
+        # create_addon_and_or_version_from_upload does
         with pytest.raises(ValueError):
             with transaction.atomic():
                 Version.from_upload(
