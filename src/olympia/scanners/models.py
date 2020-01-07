@@ -23,39 +23,26 @@ from olympia.constants.scanners import (
 from olympia.files.models import FileUpload
 
 
-class ScannerResult(ModelBase):
-    upload = models.ForeignKey(
-        FileUpload,
-        related_name='scanners_results',
-        on_delete=models.SET_NULL,
-        null=True,
-    )
+class AbstractScannerResult(ModelBase):
     # Store the "raw" results of a scanner.
     results = JSONField(default=[])
     scanner = models.PositiveSmallIntegerField(choices=SCANNERS.items())
-    version = models.ForeignKey(
-        'versions.Version',
-        related_name='scanners_results',
-        on_delete=models.CASCADE,
-        null=True,
-    )
     has_matches = models.NullBooleanField()
-    matched_rules = models.ManyToManyField(
-        'ScannerRule', through='ScannerMatch'
-    )
     state = models.PositiveSmallIntegerField(
         choices=RESULT_STATES.items(), null=True, blank=True, default=UNKNOWN
     )
+    version = models.ForeignKey(
+        'versions.Version',
+        related_name="%(class)ss",
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    matched_rules = models.ManyToManyField(
+        'ScannerRule', through='ScannerMatch'
+    )
 
-    class Meta:
-        db_table = 'scanners_results'
-        constraints = [
-            models.UniqueConstraint(
-                fields=('upload', 'scanner', 'version'),
-                name='scanners_results_upload_id_scanner_'
-                'version_id_ad9eb8a6_uniq',
-            )
-        ]
+    class Meta(ModelBase.Meta):
+        abstract = True
         indexes = [
             models.Index(fields=('has_matches',)),
             models.Index(fields=('state',)),
@@ -78,7 +65,8 @@ class ScannerResult(ModelBase):
         return []
 
     def save(self, *args, **kwargs):
-        matched_rules = ScannerRule.objects.filter(
+        rule_model = self._meta.get_field('matched_rules').related_model
+        matched_rules = rule_model.objects.filter(
             scanner=self.scanner, name__in=self.extract_rule_names()
         )
         self.has_matches = bool(matched_rules)
@@ -111,7 +99,7 @@ class ScannerResult(ModelBase):
         }.get(self.scanner)
 
 
-class ScannerRule(ModelBase):
+class AbstractScannerRule(ModelBase):
     name = models.CharField(
         max_length=200,
         help_text=_('This is the exact name of the rule used by a scanner.'),
@@ -123,8 +111,8 @@ class ScannerRule(ModelBase):
     is_active = models.BooleanField(default=True)
     definition = models.TextField(null=True, blank=True)
 
-    class Meta:
-        db_table = 'scanners_rules'
+    class Meta(ModelBase.Meta):
+        abstract = True
         unique_together = ('name', 'scanner')
 
     def __str__(self):
@@ -177,6 +165,51 @@ class ScannerRule(ModelBase):
             )
 
 
+class ScannerRule(AbstractScannerRule):
+    class Meta(AbstractScannerRule.Meta):
+        db_table = 'scanners_rules'
+
+
+class ScannerResult(AbstractScannerResult):
+    upload = models.ForeignKey(
+        FileUpload,
+        related_name="%(class)ss",  # scannerresults
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+
+    class Meta(AbstractScannerResult.Meta):
+        db_table = 'scanners_results'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('upload', 'scanner', 'version'),
+                name='scanners_results_upload_id_scanner_'
+                'version_id_ad9eb8a6_uniq',
+            )
+        ]
+
+
 class ScannerMatch(ModelBase):
     result = models.ForeignKey(ScannerResult, on_delete=models.CASCADE)
     rule = models.ForeignKey(ScannerRule, on_delete=models.CASCADE)
+
+
+class ScannerQueryRule(AbstractScannerRule):
+    class Meta(AbstractScannerRule.Meta):
+        db_table = 'scanners_query_rules'
+
+
+class ScannerQueryResult(AbstractScannerResult):
+    # Has to be overridden, because the parent refers to ScannerMatch.
+    matched_rules = models.ManyToManyField(
+        'ScannerQueryRule', through='ScannerQueryMatch'
+    )
+
+    class Meta(AbstractScannerResult.Meta):
+        db_table = 'scanners_query_results'
+        # FIXME indexes, unique constraints ?
+
+
+class ScannerQueryMatch(ModelBase):
+    result = models.ForeignKey(ScannerQueryResult, on_delete=models.CASCADE)
+    rule = models.ForeignKey(ScannerQueryRule, on_delete=models.CASCADE)
