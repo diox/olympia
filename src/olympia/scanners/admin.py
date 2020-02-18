@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
-from django.db.models import FieldDoesNotExist, Prefetch
+from django.db.models import FieldDoesNotExist, Max, Prefetch
 from django.http import Http404
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
@@ -59,6 +59,43 @@ class PresenceFilter(SimpleListFilter):
                 ),
                 'display': title,
             }
+
+
+class GroupByAddonFilter(PresenceFilter):
+    title = ugettext('addon')
+    parameter_name = 'group_by_addon'
+    template = 'admin/group_by_filter.html'
+
+    def should_apply(self, request):
+        return self.value() == '1'
+
+    def lookups(self, request, model_admin):
+        return (
+            (None, 'No'),
+            ('1', 'Yes'),
+        )
+
+    def queryset(self, request, queryset):
+        # Note: because we're doing a subquery like this, this filter needs to
+        # be at the bottom of the list. It also needs to be disabled when we
+        # apply some filtering to the changelist that is not tied to a filter,
+        # cause these are done after all filters have been applied.
+        # FIXME: the alternative would be to use a custom ChangeList class, but
+        # this is a completely undocumented API in Django.
+        # FIXME: need a way to access all results once we've grouped ?
+        # Maybe we can find a way to annotate the results shown with the count
+        # per add-on and display that if that filter is enabled ?
+        # Addon.objects.values('id').annotate(
+        #   nb_results=Count('versions__scannerqueryresults'))
+        # gives the query results for each add-on but we also need to re-apply
+        # the filters again... ugh.
+        if self.value() == '1':
+            most_recent_results_per_addon = (
+                queryset.values_list('version__addon')
+                        .annotate(most_recent_result=Max('id'))
+                        .values_list('most_recent_result', flat=True))
+            queryset = queryset.filter(pk__in=most_recent_results_per_addon)
+        return queryset
 
 
 class MatchesFilter(PresenceFilter):
@@ -569,6 +606,10 @@ class ScannerQueryResultAdmin(
         ('version__addon__disabled_by_user', AddonVisibilityFilter),
         ('version__files__status', FileStatusFiler),
         ('version__files__is_signed', FileIsSigned),
+
+        # This *needs* to be the last filter for it to work, as it does a
+        # subquery with the existing queryset with all other filters applied.
+        GroupByAddonFilter
     )
 
     def has_actions_permission(self, request):
