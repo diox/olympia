@@ -361,7 +361,7 @@ class AddonIndexer(BaseSearchIndexer):
             if version_obj.license:
                 data['license'] = {
                     'id': version_obj.license.id,
-                    'builtin': version_obj.license.builtin,
+                    'builtin': bool(version_obj.license.builtin),
                     'url': version_obj.license.url,
                 }
                 attach_trans_dict(License, [version_obj.license])
