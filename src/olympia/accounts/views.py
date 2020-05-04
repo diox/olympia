@@ -256,7 +256,8 @@ def with_user(format):
                         response, request.user)
                 return response
             try:
-                identity = verify.fxa_identify(data['code'], config=fxa_config)
+                identity, id_token = verify.fxa_identify(
+                    data['code'], config=fxa_config)
             except verify.IdentificationError:
                 log.info('Profile not found. Code: {}'.format(data['code']))
                 return render_error(
@@ -264,14 +265,20 @@ def with_user(format):
                     format=format)
             else:
                 user = find_user(identity)
-                if (waffle.switch_is_active('2fa-for-developers') and
-                        user and user.is_addon_developer and
-                        not identity.get('twoFactorAuthentication')):
+                if (user and
+                    not identity.get('twoFactorAuthentication') and
+                    waffle.switch_is_active('2fa-for-developers') and
+                        (user.is_addon_developer or user.groups_list)):
                     # https://github.com/mozilla/addons/issues/732
                     # The user is an add-on developer (with other types of
-                    # add-ons than just themes), but hasn't logged in with a
-                    # second factor. Immediately redirect them to start the FxA
-                    # flow again, this time requesting 2FA to be present.
+                    # add-ons than just themes) or part of any group (so they
+                    # are special in some way, may be an admin or a reviewer),
+                    # but hasn't logged in with a second factor. Immediately
+                    # redirect them to start the FxA flow again, this time
+                    # requesting 2FA to be present - they should be
+                    # automatically logged in FxA with the existing token, and
+                    # should be prompted to create the second factor before
+                    # coming back to AMO.
                     return HttpResponseRedirect(
                         fxa_login_url(
                             config=fxa_config,
@@ -280,6 +287,7 @@ def with_user(format):
                             action='signin',
                             force_two_factor=True,
                             request=request,
+                            id_token=id_token,
                         )
                     )
                 return fn(

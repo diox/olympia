@@ -16,14 +16,14 @@ def fxa_identify(code, config=None):
     IdentificationError is raised."""
     try:
         with statsd.timer('accounts.fxa.identify.all'):
-            token = get_fxa_token(code, config)['access_token']
-            profile = get_fxa_profile(token, config)
+            data = get_fxa_token(code, config)
+            profile = get_fxa_profile(data['access_token'], config)
     except Exception:
         statsd.incr('accounts.fxa.identify.all.fail')
         raise
     else:
         statsd.incr('accounts.fxa.identify.all.success')
-        return profile
+        return profile, data.get('id_token')
 
 
 def get_fxa_token(code, config):
