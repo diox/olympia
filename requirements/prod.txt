@@ -472,8 +472,9 @@ google-cloud-core==1.5.0 \
 google-resumable-media==1.2.0 \
     --hash=sha256:dbe670cd7f02f3586705fd5a108c8ab8552fa36a1cad8afbc5a54e982cf34f0c \
     --hash=sha256:ee98b1921e5bda94867a08c864e55b4763d63887664f49ee1c231988f56b9d43
-proto-plus==1.13.0 \
-    --hash=sha256:61b57c5257ca583af2ea1ad40e2b8f251988806eea9f01d119088976b995b2c4
+proto-plus==1.14.2 \
+    --hash=sha256:f055028886bbe1de17d90c041cca4174fb0dcff5a1641a522c7e89b19cdbe97d \
+    --hash=sha256:cd31eba8161b7e11fecc4b4ba306100239081a78796dd56c93940547c2a23d7d
 protobuf==3.14.0 \
     --hash=sha256:629b03fd3caae7f815b0c66b41273f6b1900a579e2ccb41ef4493a4f5fb84f3a \
     --hash=sha256:5b7a637212cc9b2bcf85dd828b1178d19efdf74dbfe1ddf8cd1b8e01fdaaa7f5 \
