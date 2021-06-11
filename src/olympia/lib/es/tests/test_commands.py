@@ -14,7 +14,12 @@ from celery.canvas import _chain
 
 import olympia.core.logger
 from olympia.addons.models import Addon
-from olympia.amo.tests import addon_factory as afactory, ESTestCaseMixin, reverse_ns
+from olympia.amo.tests import (
+    addon_factory as afactory,
+    ESTestCaseMixin,
+    PatchMixin,
+    reverse_ns,
+)
 from olympia.amo.utils import urlparams
 from olympia.lib.es.management.commands import reindex
 from olympia.lib.es.utils import is_reindexing_amo, unflag_reindexing_amo
@@ -34,7 +39,7 @@ def dummy_task():
     return None
 
 
-class TestIndexCommand(ESTestCaseMixin, TransactionTestCase):
+class TestIndexCommand(PatchMixin, ESTestCaseMixin, TransactionTestCase):
     def setUp(self):
         super().setUp()
         if is_reindexing_amo():
@@ -48,6 +53,11 @@ class TestIndexCommand(ESTestCaseMixin, TransactionTestCase):
 
         self.addons = []
         self.expected = self.addons[:]
+        # Monkeypatch Celerys ".get()" inside async task error
+        # until https://github.com/celery/celery/issues/4661 (which isn't just
+        # about retries but a general regression that manifests only in
+        # eager-mode) fixed.
+        self.patch('celery.app.task.denied_join_result')
 
     def tearDown(self):
         current_indices = self.es.indices.stats()['indices'].keys()
@@ -125,10 +135,12 @@ class TestIndexCommand(ESTestCaseMixin, TransactionTestCase):
         t.start()
 
         # Wait for the reindex in the thread to flag the database.
-        # The database transaction isn't shared with the thread, so force the
-        # commit.
         while t.is_alive() and not is_reindexing_amo():
-            pass
+            time.sleep(1)
+            # The database transaction isn't shared with the thread, so force
+            # the
+            # commit.
+            connection._commit()
 
         if not wipe:
             # We should still be able to search in the foreground while the
@@ -137,6 +149,7 @@ class TestIndexCommand(ESTestCaseMixin, TransactionTestCase):
             old_addons_count = len(self.expected)
             while t.is_alive() and len(self.expected) < old_addons_count + 3:
                 self.expected.append(addon_factory())
+                connection._commit()
                 # We don't know where the search will happen, the reindexing
                 # could be over by now. So force a refresh on *all* indices.
                 self.refresh(None)
@@ -145,7 +158,7 @@ class TestIndexCommand(ESTestCaseMixin, TransactionTestCase):
             if len(self.expected) == old_addons_count:
                 raise AssertionError(
                     'Could not index objects in foreground while reindexing '
-                    'in the background.'
+                    'in the background. (%d)' % len(self.expected)
                 )
 
         t.join()  # Wait for the thread to finish.
@@ -153,6 +166,7 @@ class TestIndexCommand(ESTestCaseMixin, TransactionTestCase):
         stdout = t.stdout.read()
         assert 'Reindexation done' in stdout, stdout
 
+        connection._commit()
         # The reindexation is done, let's double check we have all our docs.
         self.refresh()
         self.check_results(self.expected)
