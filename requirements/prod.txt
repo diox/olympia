@@ -283,9 +283,9 @@ django-statsd-mozilla==0.4.0 \
 django-tables2==2.4.1 \
     --hash=sha256:50762bf3d7c61a4eb70e763c3e278650d7266bb78d0497fc8fafcf4e507c9a64 \
     --hash=sha256:6c72dd208358539e789e4c0efd7d151e43283a4aa4093a35f44c43489e7ddeaa
-django-waffle==2.3.0 \
-    --hash=sha256:e4c29570d61c5759b07d9c88154c14b0b189dbf772ac8744c44e226cc7bd75bf \
-    --hash=sha256:8f457523859f39f77b785dfeb18d57d8c80d97ba05698aed7fa587bb86539476
+django-waffle==2.4.0 \
+    --hash=sha256:3c0b3336e1cab97ae4426a9443cefa1cbd950ef956242b156dca3c312a2e73f2 \
+    --hash=sha256:f3ccbc3ed3ba465631f20a79f2e195e17250dec495ce2eabc5eb5bba6119f48f
 # djangorestframework is required by drf-nested-routers
 djangorestframework==3.13.1 \
     --hash=sha256:24c4bf58ed7e85d1fe4ba250ab2da926d263cd57d64b03e8dcef0ac683f8b1aa \
