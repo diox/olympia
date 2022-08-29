@@ -5,7 +5,7 @@ import itertools
 from django import http
 from django.contrib import admin, messages
 from django.contrib.admin.utils import unquote
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Prefetch, Q
 from django.db.utils import IntegrityError
 from django.http import (
     Http404,
@@ -27,6 +27,7 @@ from olympia.addons.models import Addon, AddonUser
 from olympia.amo.admin import CommaSearchInAdminMixin
 from olympia.api.models import APIKey, APIKeyConfirmation
 from olympia.bandwagon.models import Collection
+from olympia.constants.activity import LOG_BY_ID
 from olympia.ratings.models import Rating
 from olympia.zadmin.admin import related_content_link, related_single_content_link
 
@@ -51,22 +52,12 @@ class GroupUserInline(admin.TabularInline):
 @admin.register(UserProfile)
 class UserAdmin(CommaSearchInAdminMixin, admin.ModelAdmin):
     list_display = ('__str__', 'email', 'last_login', 'is_public', 'deleted')
-    extra_list_display_for_ip_searches = (
-        'last_login_ip',
-        # Those fields don't exist, and the admin doesn't know how to traverse
-        # relations, especially reverse ones, so these are actually methods
-        # defined below that match the exact relation string, so the
-        # annotations and filter expressions needed are built directly from
-        # the strings defined here.
-        'restriction_history__last_login_ip',
-        'restriction_history__ip_address',
-        '_ratings_all__ip_address',
-        # FIXME: IPLog makes this query too slow in production, need to
-        # fix #17504 to enable.
-        # 'activitylog__iplog__ip_address',
-    )
-    # A custom ip address search is also implemented in get_search_results()
     search_fields = ('=id', '^email', '^username')
+    # A custom ip address search is implemented in get_search_results() using
+    # IPLog. It sets an annotation that we can then use in the
+    # custom activitylog__action method referenced in the line below, which
+    # is added to the list_display fields for IP searches.
+    extra_list_display_for_ip_searches = ('activitylog__action',)
     # A custom field used in search json in zadmin, not django.admin.
     search_fields_response = 'email'
     inlines = (GroupUserInline,)
@@ -190,21 +181,33 @@ class UserAdmin(CommaSearchInAdminMixin, admin.ModelAdmin):
         ips = self.ip_addresses_if_query_is_all_ip_addresses(search_term)
         if ips:
             q_objects = Q()
-            annotations = {}
-            for arg in self.extra_list_display_for_ip_searches:
-                q_objects |= Q(**{f'{arg}__in': ips})
-                if '__' in arg:
-                    annotations[arg] = F(arg)
-            queryset = queryset.filter(q_objects).annotate(**annotations)
-            # We force the distinct() ourselves and tell Django there are no
-            # duplicates, otherwise the admin de-duplication logic, which
-            # doesn't use distinct() after Django 3.1, would break our
-            # annotations.
-            # This can cause some users to show up multiple times, but that's
-            # a feature: it will happen when the IPs returned are different
-            # (so technically the rows are not duplicates), since the
-            # annotations are part of the distinct().
-            queryset = queryset.distinct()
+            for ip in ips:
+                q_objects |= Q(
+                    activitylog__iplog__ip_address_binary=ipaddress.ip_address(
+                        ip
+                    ).packed
+                )
+            # FIXME:
+            # Close, but the distinct() doesn't work because django adds the
+            # ActivityLog id in there, even though it wasn't part of the only()
+            # call. The reason it does that is it needs to re-attach the
+            # results to the right row from the main query... it's the same
+            # reason why it doesn't allow values_list()...
+            activities_queryset = (
+                ActivityLog.objects.all()
+                .annotate(ip_address=F('iplog__ip_address'))
+                .filter(ip_address__isnull=False)
+                .only('action', 'user')
+                .no_transforms()
+                .order_by()
+                .distinct()
+            )
+            prefetch = Prefetch(
+                'activitylog_set',
+                queryset=activities_queryset,
+                to_attr='activities_with_ip',
+            )
+            queryset = queryset.filter(q_objects).prefetch_related(prefetch).distinct()
             may_have_duplicates = False
         else:
             queryset, may_have_duplicates = super().get_search_results(
@@ -214,27 +217,18 @@ class UserAdmin(CommaSearchInAdminMixin, admin.ModelAdmin):
             )
         return queryset, may_have_duplicates
 
-    def restriction_history__last_login_ip(self, obj):
-        return getattr(obj, 'restriction_history__last_login_ip', '-') or '-'
+    def activitylog__action(self, obj):
+        # FIXME: do something more fancy to display the IPs and actions.
+        activities = getattr(obj, 'activities_with_ip', [])
+        return [
+            (
+                getattr(LOG_BY_ID.get(activity.action), 'format', '-'),
+                activity.ip_address,
+            )
+            for activity in activities
+        ]
 
-    restriction_history__last_login_ip.short_description = (
-        'Restriction History Last Login IP'
-    )
-
-    def restriction_history__ip_address(self, obj):
-        return getattr(obj, 'restriction_history__ip_address', '-') or '-'
-
-    restriction_history__ip_address.short_description = 'Restriction History IP'
-
-    def activitylog__iplog__ip_address(self, obj):
-        return getattr(obj, 'activitylog__iplog__ip_address', '-') or '-'
-
-    activitylog__iplog__ip_address.short_description = 'Activity IP'
-
-    def _ratings_all__ip_address(self, obj):
-        return getattr(obj, '_ratings_all__ip_address', '-') or '-'
-
-    _ratings_all__ip_address.short_description = 'Rating IP'
+    activitylog__action.short_description = 'Actions'
 
     def get_urls(self):
         def wrap(view):
