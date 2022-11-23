@@ -1092,6 +1092,10 @@ def read_only_mode(env):
     env['AUTHENTICATION_BACKENDS'] = ('olympia.users.backends.NoAuthForYou',)
 
 
+# Max length for all TextFields (models can specify a lower one, but this one
+# will always apply).
+MAX_TEXTFIELD_LENGTH = 100000
+
 # Uploaded file limits
 MAX_IMAGE_UPLOAD_SIZE = 4 * 1024 * 1024
 MAX_ICON_UPLOAD_SIZE = MAX_IMAGE_UPLOAD_SIZE

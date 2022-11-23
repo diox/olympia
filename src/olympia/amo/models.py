@@ -7,9 +7,12 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.core.files.storage import default_storage as storage
 from django.db import models
+from django.db.backends.utils import names_digest
+from django.db.models.base import ModelBase as DjangoModelBase
 from django.db.models.expressions import Func
 from django.db.models.fields import CharField
 from django.db.models.fields.related_descriptors import ManyToManyDescriptor
+from django.db.models.functions import Length
 from django.db.models.query import ModelIterable
 from django.urls import resolve, reverse
 from django.urls.exceptions import Resolver404
@@ -24,6 +27,10 @@ from olympia.translations.hold import save_translations
 
 
 log = olympia.core.logger.getLogger('z.addons')
+
+
+models.CharField.register_lookup(Length)
+models.TextField.register_lookup(Length)
 
 
 @contextlib.contextmanager
@@ -379,7 +386,56 @@ class SaveUpdateMixin:
         return super().save(**kwargs)
 
 
-class ModelBase(SaveUpdateMixin, models.Model):
+class DummyMeta:
+    pass
+
+
+class ModelBaseMetaClass(DjangoModelBase):
+    @classmethod
+    def get_new_constraint_name(cls, *, classname, attrs, field_name, suffix):
+        """Return a short, unique but still somewhat readable name
+        for a database constraint, trying to stay close to what Django does,
+        resulting in a name of 30 characters."""
+        app_name = attrs['__module__'].split('.')[-2]  # -1 is 'models'
+        table_name = f'{app_name}_{classname.lower()}'
+        unique_part = names_digest(table_name, field_name, suffix, length=8)
+        return f'{table_name[:11]}_{field_name[:7]}_{unique_part}_{suffix}'
+
+    @classmethod
+    def add_textfield_max_length_constraint(cls, *, classname, attrs, field_name, meta):
+        constraints = getattr(meta, 'constraints', [])
+        constraints.append(
+            models.CheckConstraint(
+                check=models.Q(
+                    **{f'{field_name}__length__lte': settings.MAX_TEXTFIELD_LENGTH}
+                ),
+                name=cls.get_new_constraint_name(
+                    classname=classname,
+                    attrs=attrs,
+                    field_name=field_name,
+                    suffix='mlen',
+                ),
+            )
+        )
+        meta.constraints = constraints
+
+    def __new__(cls, name, bases, attrs):
+        fields_with_added_constraints = []
+        if not getattr(meta := attrs.get('Meta', DummyMeta), 'abstract', False):
+            for key in attrs:
+                if isinstance(attrs[key], models.TextField):
+                    cls.add_textfield_max_length_constraint(
+                        classname=name, attrs=attrs, field_name=key, meta=meta
+                    )
+                    fields_with_added_constraints.append(key)
+        klass = super().__new__(cls, name, bases, attrs)
+        for name in fields_with_added_constraints:
+            if (field := klass._meta.get_field(name)).max_length is None:
+                field.max_length = settings.MAX_TEXTFIELD_LENGTH
+        return klass
+
+
+class ModelBase(SaveUpdateMixin, models.Model, metaclass=ModelBaseMetaClass):
     """
     Base class for AMO models to abstract some common features.
 
