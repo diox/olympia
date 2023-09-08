@@ -942,6 +942,9 @@ def version_factory(file_kw=None, **kw):
         ),
     )
     application = kw.pop('application', amo.FIREFOX.id)
+    originated_from = kw.pop(
+        'compat_originated_from', amo.APPVERSIONS_ORIGINATED_FROM_UNKNOWN
+    )
     license_kw = kw.pop('license_kw', {})
     if not kw.get('license') and not kw.get('license_id'):
         # Is there a built-in one we can use?
@@ -965,7 +968,11 @@ def version_factory(file_kw=None, **kw):
         application=application, version=max_app_version
     )
     ApplicationsVersions.objects.get_or_create(
-        application=application, version=ver, min=av_min, max=av_max
+        application=application,
+        version=ver,
+        min=av_min,
+        max=av_max,
+        originated_from=originated_from,
     )
     ver._compatible_apps = ver._create_compatible_apps(
         ver.apps.all().select_related('min', 'max')
