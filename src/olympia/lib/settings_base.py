@@ -1072,7 +1072,7 @@ NFS_LAG_DELAY = 3
 # - scheme://host:port e.g. 'https://localhost:9200'
 # - scheme://user:password@host:port e.g. https://foo:bar@localhost:9200
 # Fallback to the default used by CI.
-ES_HOST = env('ELASTICSEARCH_LOCATION', default='127.0.0.1:9200')
+ES_HOST = env('ELASTICSEARCH_LOCATION', default='http://127.0.0.1:9200')
 ES_INDEXES = {
     'default': 'addons',
 }

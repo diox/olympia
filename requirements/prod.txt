@@ -611,12 +611,12 @@ drf-nested-routers==0.94.1 \
     --hash=sha256:2b846385ed95c9f17bf4242db3b264ac826b5af00dda6c737d3fe7cc7bf2c7db \
     --hash=sha256:3a8ec45a025c0f39188ec1ec415244beb875a6f4db87911a1f5a606d09b68c9f
 # elasticsearch is required by elasticsearch-dsl
-elasticsearch==7.17.12 \
-    --hash=sha256:468fd5eef703c0d9238e29bcaf3a6fe4d6b092f917959fbf41f48f8fea3df2f8 \
-    --hash=sha256:a1f5733ae8cf1dbf0a78593389f2503c87dd97429976099832bf0626cdfaac8b
-elasticsearch-dsl==7.4.1 \
-    --hash=sha256:07ee9c87dc28cc3cae2daa19401e1e18a172174ad9e5ca67938f752e3902a1d5 \
-    --hash=sha256:97f79239a252be7c4cce554c29e64695d7ef6a4828372316a5e5ff815e7a7498
+elasticsearch==8.17.2 \
+    --hash=sha256:2d058dcddd8f2686cd431a916cdf983f9fb7d211d902834f564ab7df05ba6478 \
+    --hash=sha256:ff7f1db8aeefd87ceba4edce3aa4070994582e6cf029d2e67b74e66d634509db
+elasticsearch-dsl==8.17.1 \
+    --hash=sha256:49ee12a6a8d43fcfc0af42b49649531a6ef228c9e4795325de27f6b309b62b6d \
+    --hash=sha256:d8170699bfdb4fe7fab3854cdac319a2d6dddbaa29c9ea7993d2ec22056db5a0
 email-reply-parser==0.5.12 \
     --hash=sha256:d051cfa8f54046f7399553aae57f17f62bf1652f83e3e9970fd109c0f24a880c \
     --hash=sha256:3499c02284679e020acf8aa30ef9e43c62f9ab5ccee0a35bfac85a0c1fa685fd \
@@ -1392,3 +1392,6 @@ jsonschema-specifications==2023.12.1 \
 drf-spectacular-sidecar==2024.7.1 \
     --hash=sha256:5dc8b38ad153e90b328152674c7959bf114bf86360a617a5a4516e135cb832bc \
     --hash=sha256:beb992d6ece806a2d422ad626983e2472c0a5550de9647a7ed6764716a5abdfe
+elastic-transport==8.17.1 \
+    --hash=sha256:192718f498f1d10c5e9aa8b9cf32aed405e469a7f0e9d6a8923431dbb2c59fb8 \
+    --hash=sha256:5edef32ac864dca8e2f0a613ef63491ee8d6b8cfb52881fa7313ba9290cac6d2

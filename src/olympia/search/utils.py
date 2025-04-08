@@ -5,19 +5,9 @@ from copy import deepcopy
 from django.conf import settings
 from django.core.management.base import CommandError
 
-from elasticsearch import Elasticsearch, TransportError, helpers, transport
+from elasticsearch import Elasticsearch, NotFoundError, helpers
 
 from .models import Reindexing
-
-
-class AlreadyVerifiedTransport(transport.Transport):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Pretend we've already done the verification request that would
-        # normally be made by elasticsearch client 7.14+ once per connection
-        # before the first request. We're using a genuine ES cluster but we
-        # don't want the extra request.
-        self._verified_elasticsearch = True
 
 
 def get_es():
@@ -26,7 +16,6 @@ def get_es():
         settings.ES_HOST,
         http_compress=settings.ES_COMPRESS,
         timeout=settings.ES_TIMEOUT,
-        transport_class=AlreadyVerifiedTransport,
     )
 
 
@@ -74,7 +63,7 @@ def unindex_objects(ids, indexer_class):
     for id_ in ids:
         try:
             es.delete(index=index, id=id_)
-        except TransportError:
+        except NotFoundError:
             # We ignore already deleted objects.
             pass
 

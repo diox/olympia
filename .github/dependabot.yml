@@ -50,10 +50,10 @@ updates:
     - ">= 6"
   - dependency-name: elasticsearch
     versions:
-    - ">= 8"
+    - ">= 9"
   - dependency-name: elasticsearch-dsl
     versions:
-    - ">= 8"
+    - ">= 9"
   - dependency-name: kombu
     versions:
     - ">= 6"

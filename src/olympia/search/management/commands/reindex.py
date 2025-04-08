@@ -268,7 +268,6 @@ class Command(BaseCommand):
         self.stdout.write('\n')
 
         # Let's return the /_aliases values.
-        aliases = ES.indices.get_alias()
-        aliases = json.dumps(aliases, sort_keys=True, indent=4)
-        summary = _SUMMARY % aliases
+        aliases = dict(ES.indices.get_alias())
+        summary = _SUMMARY % json.dumps(aliases, sort_keys=True, indent=4)
         self.stdout.write(summary)
