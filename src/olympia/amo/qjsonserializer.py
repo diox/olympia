@@ -3,6 +3,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
 
+
 # QUERY scanner (acronym tbd)
 #
 # Principle:
@@ -112,7 +113,7 @@ class QJSONSerializer:
     #
     #
     # FIXME: a cool thing to do would be an autocomplete on the key in the
-    # conditions.
+    # conditions. See below.
     json_schema = """
         {
           "type": "object",
@@ -168,3 +169,34 @@ class QJSONSerializer:
           }
         }
     """
+
+    @classmethod
+    def autocomplete(cls, *, tree):
+        # FIXME: instead of refusing to go down if len(tree) gets too big,
+        # pass parameter, only returning relevant results from that parameter.
+        # Then allow going down one extra level from it, so that starting from
+        # "" would return what we have now, but we could pass "addon" or
+        # "addons__authors" to go deeper and get autocomplete suggestions from
+        # that point.
+        rval = []
+        fields = tree[-1]._meta.get_fields()
+        for field in fields:
+            related_model = field.related_model
+            if related_model:
+                if related_model not in tree[:-1] and len(tree) <= 1:
+                    if field.concrete:
+                        rval.extend((field.attname, field.name))
+                    else:
+                        rval.append(field.name)
+                    rval.extend(
+                        map(
+                            lambda v: f'{field.name}__{v}',
+                            cls.autocomplete(
+                                tree=tree + [related_model],
+                            ),
+                        )
+                    )
+            else:
+                rval.append(field.name)
+
+        return sorted(rval)
