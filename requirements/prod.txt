@@ -1668,5 +1668,3 @@ jsonschema-specifications==2025.9.1 \
 drf-spectacular-sidecar==2026.4.14 \
     --hash=sha256:a040d360ada2592722e90f40c2cf744376d9a30cccb3caaa5423bad791dec0aa \
     --hash=sha256:d4c299a85f3be44e93eaff3d83e986f27b744bb9823ba034aff9fd267ebc9fea
-
--r yara-x.txt
